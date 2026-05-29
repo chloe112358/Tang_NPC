@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>史料未及：請勿對古人劇透！</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-bg:         #0a0a0a;
+  --color-ink:        #1a1208;
+  --color-paper:      #f5ead0;
+  --color-gold:       #c8960c;
+  --color-red:        #c0392b;
+  --color-btn-yellow: #f5c518;
+  --color-btn-red:    #c0392b;
+  --color-grey:       #888888;
+  --color-white:      #ffffff;
+  --color-overlay:    rgba(0,0,0,0.70);
+  --gold:#c8960c;--gold-l:#f5c518;--red:#c0392b;
+  --paper:#f5ead0;--ink:#1a1208;
+  --overlay:rgba(0,0,0,.72);
+  --branch1-url: none;
+  --branch2-url: none;
+  --popup-paper-url: none;
+}
+.hidden{display:none!important}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html,body{width:100%;height:100%;background:#0d0b08;overflow:hidden;
+  font-family:'Noto Serif TC','Kaiti TC','標楷體',serif}
+body{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100dvh;
+}
+#viewport{
+  position:relative;flex-shrink:0;overflow:hidden;
+  width:min(100vw, calc(100vh * 16 / 9));
+  height:min(100vh, calc(100vw * 9 / 16));
+  width:min(100vw, calc(100dvh * 16 / 9));
+  height:min(100dvh, calc(100vw * 9 / 16));
+  aspect-ratio:16/9;
+}
+#canvas{
+  position:absolute;top:0;left:0;
+  width:1280px;height:720px;
+  overflow:hidden;
+  transform-origin:top left;
+  will-change:transform;
+}
+
+/* ── 場景基底 ── */
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  display: none;
+}
+
+/* ─────────────────────────────────────────
+   S0  INTRO
+───────────────────────────────────────── */
+#scene-intro{
+  background:#000;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:48px 72px;
+}
+.ink-wrap{max-width:900px;width:100%;text-align:center}
+.ink-group,.ink-btn{
+  opacity:0;transform:translateY(12px);
+  transition:opacity .65s ease,transform .65s ease;
+}
+.ink-group.is-in,.ink-btn.is-in{opacity:1;transform:translateY(0)}
+.ink-line{
+  color:#fff;font-size:1rem;line-height:2.1;
+}
+.ink-title{font-size:1.25rem;font-weight:700;color:var(--gold-l)}
+.ink-warn {color:#ff9c9c;font-weight:700}
+
+.ink-btn{
+  display:block;margin:30px auto 0;
+  background:var(--gold-l);color:var(--red);
+  font-family:inherit;font-size:1.25rem;font-weight:900;
+  letter-spacing:5px;border:none;border-radius:14px;
+  padding:14px 52px;cursor:pointer;position:relative;overflow:hidden;
+  pointer-events:none;
+}
+.ink-btn.ready{pointer-events:auto}
+.ink-btn.ready::after{
+  content:'';position:absolute;inset:0;
+  animation:wFlash 1.5s ease-in-out infinite;
+}
+@keyframes wFlash{0%,100%{background:rgba(255,255,255,0)}50%{background:rgba(255,255,255,.42)}}
+
+/* ─────────────────────────────────────────
+   S1  MAIN
+───────────────────────────────────────── */
+#scene-main{
+  background:linear-gradient(165deg,#6b5844 0%,#4a3a2c 50%,#3d3024 100%);
+}
+
+.main-grid{display:grid;grid-template-columns:1.75fr 1fr;height:100%}
+
+/* Map left */
+.map-area{
+  position:relative;overflow:hidden;
+  border-right:1px solid rgba(160,120,50,.35);
+  background:#c9b08a;
+}
+.map-zoom{
+  position:absolute;inset:0;
+  transform:scale(1.14);
+  transform-origin:center center;
+}
+.map-paper{
+  display:none;
+}
+.map-layer{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  z-index:1;
+}
+.map-img-wrap{
+  position:absolute;inset:0;overflow:hidden;
+}
+.map-bg{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  pointer-events:none;
+  opacity:1;
+  filter:drop-shadow(0 2px 10px rgba(60,40,15,.2));
+}
+.map-logo{
+  position:absolute;transform:translate(-50%,-50%);
+  background:rgba(18,12,6,.82);border:2px solid rgba(200,150,12,.55);
+  border-radius:50%;width:76px;height:76px;
+  cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  filter:grayscale(1) brightness(.7);
+  box-shadow:0 2px 14px rgba(0,0,0,.55),inset 0 0 12px rgba(200,150,12,.08);
+  transition:filter .4s,transform .2s,box-shadow .4s;z-index:10;
+}
+.map-logo:hover{transform:translate(-50%,-50%) scale(1.14)}
+.map-logo.done{
+  filter:grayscale(0) brightness(1);
+  border-color:var(--gold);box-shadow:0 0 18px rgba(200,150,12,.55);
+}
+.logo-icon{font-size:1.65rem}
+.logo-lbl{font-size:.52rem;color:var(--paper);letter-spacing:1px;margin-top:2px}
+.map-lbl{position:absolute;color:rgba(200,150,12,.38);font-size:.65rem;letter-spacing:2px}
+
+/* Char right */
+.char-area{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:22px 18px;position:relative;
+  background:
+    linear-gradient(180deg,rgba(245,234,208,.12) 0%,rgba(200,170,120,.06) 40%,transparent 100%),
+    linear-gradient(180deg,#5a4838 0%,#4a3c2e 100%);
+  box-shadow:inset 4px 0 18px rgba(0,0,0,.22);
+}
+.char-stack{
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;
+}
+.char-fig{margin-top:-6px}
+.poem-wrap{
+  position:relative;width:100%;
+  display:flex;justify-content:center;flex-shrink:0;
+}
+.poem-bubble{
+  background:linear-gradient(145deg,#ebe0c8 0%,#d4c4a0 100%);color:#2a1f10;
+  border-radius:10px;padding:13px 20px;
+  font-size:.88rem;line-height:1.75;
+  min-width:calc(8ch + 2.5rem);width:max-content;max-width:96%;
+  text-align:center;
+  box-shadow:2px 3px 10px rgba(0,0,0,.38),inset 0 0 18px rgba(139,100,30,.1);
+  border:1px solid rgba(120,90,40,.45);
+  margin-bottom:4px;
+  white-space:pre-line;word-break:keep-all;
+  flex-shrink:0;
+  animation:bFade .55s ease;
+}
+.poem-bubble::after{
+  content:'';position:absolute;
+  bottom:-10px;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;
+  border-top-color:#d4c4a0;
+}
+@keyframes bFade{from{opacity:0;transform:translateY(-5px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.char-fig{
+  width:100%;max-width:410px;height:460px;
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;border-radius:0;
+  box-shadow:none;overflow:visible;
+  margin:2px 0 0;
+}
+.char-img{
+  width:100%;height:100%;object-fit:contain;object-position:center center;
+  display:block;filter:drop-shadow(0 6px 16px rgba(0,0,0,.4));
+}
+.char-lbl{color:var(--gold);font-size:.75rem;letter-spacing:4px;margin-top:4px}
+
+.btn-return-m{
+  margin-top:14px;
+  padding:9px 24px;border-radius:6px;
+  border:1.5px solid rgba(120,120,120,.4);
+  background:rgba(28,28,28,.7);color:rgba(160,160,160,.7);
+  cursor:pointer;font-family:inherit;font-size:.78rem;letter-spacing:2px;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+
+/* Overlay modal */
+.overlay{
+  position:absolute;inset:0;background:var(--overlay);
+  display:flex;align-items:center;justify-content:center;z-index:200;
+}
+.modal{
+  background:var(--paper);border-radius:16px;
+  padding:36px 44px;max-width:460px;
+  color:var(--ink);text-align:center;
+  box-shadow:0 8px 40px rgba(0,0,0,.65);
+  border:2px solid var(--gold);animation:mPop .3s ease;
+}
+@keyframes mPop{from{transform:scale(.82);opacity:0}to{transform:scale(1);opacity:1}}
+.modal p{font-size:.97rem;line-height:1.75}
+.modal-row{display:flex;gap:14px;margin-top:22px;justify-content:center}
+.modal-btn{
+  padding:10px 28px;border-radius:11px;
+  border:2px solid #999;background:#999;color:#fff;
+  cursor:pointer;font-family:inherit;font-size:.93rem;letter-spacing:1px;
+  transition:background .2s,border-color .2s;
+}
+.modal-btn.active,.modal-btn:hover{background:#27ae60;border-color:#27ae60}
+
+
+.map-logo.done,.map-logo.completed{
+  filter:grayscale(0) brightness(1);
+  border-color:var(--gold);box-shadow:0 0 18px rgba(200,150,12,.55);
+}
+#logo-theater.completed{
+  background:rgba(160,30,30,.88);
+  border-color:#d94f4f;
+  box-shadow:0 0 20px rgba(200,50,50,.6);
+}
+#logo-food.completed{
+  background:rgba(25,70,160,.88);
+  border-color:#4a7fd9;
+  box-shadow:0 0 20px rgba(50,100,210,.6);
+}
+#logo-tbd.completed{
+  background:rgba(25,110,55,.88);
+  border-color:#4abd6e;
+  box-shadow:0 0 20px rgba(40,160,80,.6);
+}
+#scene-main.all-completed .map-bg{filter:grayscale(1) brightness(.65);opacity:.45;}
+#poetry-bubble{white-space:pre-line;word-break:keep-all;}
+
+/* ══════════════════════════════════════════
+   S2：分支頁面
+══════════════════════════════════════════ */
+.branch-scene {
+  background: #0d0b08;
+}
+
+.branch-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  height: 100%;
+}
+
+/* 左側場景區 */
+.branch-map-area {
+  position: relative;
+  overflow: hidden;
+}
+
+.route-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.route-theater {
+  background: var(--branch1-url),
+    linear-gradient(160deg, #1a0d05 0%, #2a1508 40%, #0d0a05 100%);
+}
+.route-food {
+  background: var(--branch2-url),
+    linear-gradient(160deg, #0d1a08 0%, #1a2a10 40%, #080d05 100%);
+}
+.route-tbd {
+  background:
+    linear-gradient(160deg, #050d1a 0%, #081525 40%, #030810 100%);
+}
+
+/* 支線左側背景圖（透過 img 元素方便加 filter） */
+.branch-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 分支標題 */
+.branch-title {
+  position: absolute;
+  top: 16px;
+  left: 0; right: 0;
+  text-align: center;
+  color: var(--color-gold);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  z-index: 5;
+}
+
+/* 路線節點 */
+.route-nodes {
+  position: absolute;
+  left: 50%;
+  top: 60px;
+  bottom: 30px;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-around;
+  transform: translateX(-50%);
+  z-index: 3;
+  align-items: center;
+}
+
+.route-node {
+  text-align: center;
+  color: var(--color-paper);
+  font-size: 0.78rem;
+  padding: 5px 12px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(200,150,12,0.4);
+  border-radius: 20px;
+  white-space: nowrap;
+  transition: background 0.4s, border-color 0.4s;
+}
+.route-node.active {
+  background: rgba(200,150,12,0.3);
+  border-color: var(--color-gold);
+  box-shadow: 0 0 10px rgba(200,150,12,0.4);
+}
+.route-node.completed-node {
+  background: rgba(39,174,96,0.3);
+  border-color: #27ae60;
+}
+
+/* 連接線 */
+.route-line {
+  position: absolute;
+  left: 50%;
+  top: 60px;
+  bottom: 30px;
+  width: 2px;
+  background: linear-gradient(to top, rgba(200,150,12,0.6), rgba(200,150,12,0.1));
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+/* 角色大頭 */
+.char-head {
+  position: absolute;
+  font-size: 1.6rem;
+  transition: top 0.8s cubic-bezier(0.4,0,0.2,1), left 0.8s;
+  z-index: 4;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  filter: drop-shadow(0 0 6px rgba(200,150,12,0.4));
+}
+
+/* 科普視窗 */
+.popup-science {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  width: 94%;
+  height: 98%;
+  background-color: transparent;
+  border: none;
+  padding: 60px 142px;
+  color: var(--color-ink);
+  filter: drop-shadow(0 10px 24px rgba(0,0,0,0.7));
+  z-index: 10;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+.popup-parchment-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  z-index: 0;
+  pointer-events: none;
+}
+/* 支線1 Q1 場景切換覆蓋層 */
+.branch-bg-overlay {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+.branch-npc-walker {
+  position: absolute;
+  bottom: 0;
+  height: 37.5%;
+  width: auto;
+  object-fit: contain;
+  z-index: 3;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: left 1.0s ease;
+}
+.popup-title, .popup-content, .btn-skip {
+  position: relative;
+  z-index: 1;
+}
+.popup-science-imgs {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: nowrap;
+}
+.popup-science-imgs.centered {
+  justify-content: center;
+}
+.popup-science-imgs img {
+  flex: 1;
+  min-width: 0;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.popup-science-imgs.centered img {
+  flex: none;
+  max-height: 200px;
+  max-width: 55%;
+}
+.popup-science.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.popup-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 9;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+#transition-overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}
+.popup-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.popup-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(120,90,40,0.35);
+  padding-bottom: 6px;
+}
+
+.popup-content {
+  font-size: 0.78rem;
+  line-height: 1.65;
+  color: #333;
+  white-space: pre-line;
+}
+
+.btn-skip {
+  display: block;
+  margin: 10px 0 0 auto;
+  padding: 5px 18px;
+  border-radius: 20px;
+  background: var(--color-gold);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: 'Noto Serif TC', serif;
+  transition: opacity 0.2s;
+}
+.btn-skip:hover { opacity: 0.8; }
+
+/* 右側互動區 */
+.branch-interact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 14px;
+  overflow-y: auto;
+  background: rgba(10,8,5,0.7);
+  border-left: 1px solid rgba(200,150,12,0.15);
+}
+
+.interact-title {
+  font-size: 1rem;
+  color: #ffffff;
+  text-align: center;
+  letter-spacing: 0.2em;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.question-box {
+  background: rgba(245,234,208,0.92);
+  color: var(--color-ink);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  border-left: 3px solid var(--color-gold);
+}
+
+.option-btn {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(200,150,12,0.5);
+  background: rgba(200,150,12,0.08);
+  color: var(--color-paper);
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-family: 'Noto Serif TC', serif;
+  transition: background 0.2s, border-color 0.2s;
+  text-align: left;
+  line-height: 1.5;
+}
+.option-btn:hover {
+  background: rgba(200,150,12,0.28);
+  border-color: var(--color-gold);
+}
+.option-btn.final-option {
+  border-color: rgba(192,57,43,0.5);
+  background: rgba(192,57,43,0.08);
+  padding: 12px;
+  font-size: 0.85rem;
+}
+.option-btn.final-option:hover {
+  background: rgba(192,57,43,0.25);
+  border-color: var(--color-red);
+}
+.option-btn.selected {
+  background: rgba(200,150,12,0.55);
+  border-color: var(--color-gold);
+}
+
+/* 自由輸入區 */
+.input-area {
+  position: relative;
+  background: rgba(245,234,208,0.06);
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 8px;
+}
+.input-area textarea {
+  width: 100%;
+  min-height: 56px;
+  background: transparent;
+  border: none;
+  color: var(--color-paper);
+  font-family: 'Noto Serif TC', serif;
+  font-size: 0.82rem;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+}
+.input-area textarea::placeholder { color: rgba(245,234,208,0.3); }
+.input-area textarea:disabled {
+  color: rgba(245,234,208,0.55);
+  cursor: not-allowed;
+}
+.btn-send {
+  position: absolute;
+  bottom: 7px;
+  right: 7px;
+  padding: 4px 13px;
+  border-radius: 7px;
+  background: var(--color-gold);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-family: 'Noto Serif TC', serif;
+  transition: opacity 0.2s;
+}
+.btn-send:hover { opacity: 0.85; }
+.btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* NPC 回應框 */
+.npc-reply {
+  background: rgba(255,255,255,0.95);
+  border-left: 3px solid var(--color-red);
+  padding: 10px 12px;
+  border-radius: 0 8px 8px 0;
+  color: var(--color-ink);
+  font-size: 0.84rem;
+  line-height: 1.65;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.npc-name { font-weight: 700; color: var(--color-red); }
+
+/* 返回主畫面按鈕 */
+.btn-back-main {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: rgba(60,60,60,0.8);
+  color: #aaa;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-family: 'Noto Serif TC', serif;
+  align-self: flex-start;
+  transition: background 0.2s;
+}
+.btn-back-main:hover { background: #555; color: #fff; }
+
+/* ══════════════════════════════════════════
+   S3：展演頁面
+══════════════════════════════════════════ */
+.performance-scene {
+  position: relative;
+}
+
+/* 左圖右文版型 */
+.perf-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  height: 100%;
+}
+.perf-left {
+  position: relative;
+  overflow: hidden;
+  background: #0d0b08;
+}
+.perf-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.perf-right {
+  display: flex;
+  flex-direction: column;
+  padding: 36px 28px 24px;
+  background: #0e0b07;
+  border-left: 1px solid rgba(200,150,12,0.25);
+  gap: 18px;
+  overflow: hidden;
+}
+.perf-right-title {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--color-gold);
+  letter-spacing: 0.15em;
+  text-align: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(200,150,12,0.3);
+  flex-shrink: 0;
+}
+.perf-science-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+.perf-science-body {
+  font-size: 0.82rem;
+  line-height: 1.9;
+  color: rgba(245,234,208,0.92);
+  white-space: pre-line;
+}
+
+.performance-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.8);
+}
+
+/* 展演背景（CSS漸層佔位） */
+#perf-bg-theater {
+  background: linear-gradient(135deg, #1a0d1a 0%, #2d1535 50%, #1a0d08 100%);
+}
+#perf-bg-food {
+  background: linear-gradient(135deg, #0d1a08 0%, #152d10 50%, #0a1208 100%);
+}
+#perf-bg-tbd {
+  background: linear-gradient(135deg, #080d1a 0%, #101a2d 50%, #050a15 100%);
+}
+
+/* 展演背景裝飾 */
+.perf-decoration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.perf-decoration::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: -200px;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,150,12,0.12) 0%, transparent 70%);
+}
+.perf-decoration::after {
+  content: '';
+  position: absolute;
+  bottom: -100px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(192,57,43,0.1) 0%, transparent 70%);
+}
+
+/* 大型展演emoji展示 */
+.perf-main-art {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8rem;
+  filter: drop-shadow(0 0 40px rgba(200,150,12,0.4));
+  animation: floatArt 3s ease-in-out infinite;
+  text-align: center;
+}
+@keyframes floatArt {
+  0%,100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -54%) scale(1.05); }
+}
+
+.perf-title-overlay {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: var(--color-gold);
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 30px rgba(200,150,12,0.6), 0 4px 12px rgba(0,0,0,0.8);
+  animation: titleGlow 2s ease-in-out infinite;
+}
+@keyframes titleGlow {
+  0%,100% { text-shadow: 0 0 20px rgba(200,150,12,0.5), 0 4px 12px rgba(0,0,0,0.8); }
+  50%      { text-shadow: 0 0 40px rgba(200,150,12,0.9), 0 4px 12px rgba(0,0,0,0.8); }
+}
+
+/* 左下科普視窗 */
+.perf-science-popup {
+  position: absolute;
+  left: 22px;
+  bottom: 56px;
+  width: 30%;
+  background: rgba(245,234,208,0.94);
+  color: var(--color-ink);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  box-shadow: 4px 4px 16px rgba(0,0,0,0.5);
+  border-left: 3px solid var(--color-gold);
+  max-height: 200px;
+  overflow-y: auto;
+}
+.perf-science-popup strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  color: var(--color-ink);
+}
+
+/* 右下結束按鈕 */
+.btn-end-exp {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  padding: 12px 28px;
+  border-radius: 12px;
+  background: var(--color-gold);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 700;
+  box-shadow: 2px 2px 12px rgba(0,0,0,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.1em;
+}
+.btn-end-exp:hover {
+  transform: scale(1.05);
+  box-shadow: 4px 4px 20px rgba(200,150,12,0.5);
+}
+
+/* ══════════════════════════════════════════
+   S4：返回現代頁面
+══════════════════════════════════════════ */
+#scene-return {
+  background: #0d0b08;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#scene-return::before { display: none; }
+
+#scene-return::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,150,12,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.ticket-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: ticketReveal 0.8s ease;
+}
+@keyframes ticketReveal {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.ticket {
+  width: 340px;
+  background: #fdf6e3;
+  border-radius: 4px;
+  padding: 28px 26px;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.7), 4px 4px 0 #c8960c;
+  font-family: 'Noto Serif TC', serif;
+  color: #1a1208;
+  position: relative;
+  border-top: 2px dashed rgba(200,150,12,0.7);
+  border-bottom: 2px dashed rgba(200,150,12,0.7);
+  overflow: visible;
+}
+.ticket::before, .ticket::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  height: 10px;
+  background: radial-gradient(circle at 50% 0%, transparent 7px, #1a1208 7px) repeat-x;
+  background-size: 18px 10px;
+}
+.ticket::before { top: -2px; }
+.ticket::after  { bottom: -2px; transform: rotate(180deg); }
+
+.ticket-header { margin-bottom: 14px; }
+.ticket-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 10px;
+  color: var(--color-ink);
+  letter-spacing: 0.05em;
+}
+.ticket-desc {
+  font-size: 0.73rem;
+  line-height: 1.65;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+.ticket-divider {
+  border: none;
+  border-top: 1px dashed rgba(200,150,12,0.5);
+  margin: 10px 0;
+}
+
+.ticket-list {
+  font-size: 0.82rem;
+  padding-left: 18px;
+  margin-bottom: 14px;
+  line-height: 2;
+}
+.ticket-list li { margin-bottom: 2px; }
+.ticket-choice { font-weight: 700; color: var(--color-red); }
+
+.ticket-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.ticket-img-placeholder {
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, rgba(200,150,12,0.2), rgba(192,57,43,0.1));
+  border: 2px solid rgba(200,150,12,0.5);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.ticket-footer {
+  text-align: center;
+  font-size: 0.68rem;
+  color: #aaa;
+  letter-spacing: 0.3em;
+  margin-top: 4px;
+}
+
+.btn-restart {
+  padding: 10px 36px;
+  background: rgba(80,80,80,0.9);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-family: 'Noto Serif TC', serif;
+  letter-spacing: 0.1em;
+  transition: background 0.2s;
+}
+.btn-restart:hover { background: #777; }
+
+/* ── ticket-frame (圖片式電影票 + 章印) ── */
+.ticket-frame{position:relative;display:inline-block;background:#1a1208;}
+.ticket-bg-img{display:block;max-height:480px;width:auto;}
+.stamp-img{position:absolute;width:100px;opacity:0;transition:opacity .6s;pointer-events:none;}
+.stamp-img.visible{opacity:1;}
+#stamp-theater{bottom:28%;left:47%;}
+#stamp-food{bottom:28%;left:60.5%;}
+#stamp-tbd{bottom:28%;left:74%;width:150px;}
+
+/* ══════════════════════════════════════════
+   通用工具
+══════════════════════════════════════════ */
+.gemini-thinking {
+  display: inline-block;
+  color: var(--color-gold);
+  font-size: 0.8rem;
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; }
+  50%      { opacity:0.3; }
+}
+
+/* 滾動條樣式 */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(200,150,12,0.4); border-radius: 2px; }
+
+
+/* ══ 昏迷淡出動畫 ══ */
+#tv-shutoff {
+  position: fixed; inset: 0; z-index: 9000;
+  pointer-events: none;
+  background: transparent;
+}
+#tv-shutoff.closing {
+  pointer-events: all;
+  animation: faintOut 2s ease-in forwards;
+}
+@keyframes faintOut {
+  0%   { box-shadow: inset 0 0 0px   0px   rgba(0,0,0,0); }
+  20%  { box-shadow: inset 0 0 80px  40px  rgba(0,0,0,0.55); }
+  55%  { box-shadow: inset 0 0 180px 130px rgba(0,0,0,0.92); }
+  85%  { box-shadow: inset 0 0 350px 280px rgba(0,0,0,0.99); }
+  100% { box-shadow: inset 0 0 600px 600px rgba(0,0,0,1); background:#000; }
+}
+
+/* ══ 尾聲畫面 ══ */
+#scene-epilogue {
+  position: fixed; inset: 0; z-index: 9100;
+  background: #000;
+  display: none;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 72px;
+}
+#scene-epilogue.visible { display: flex; }
+.epi-wrap { max-width: 800px; width: 100%; text-align: center; }
+.epi-btn {
+  display: block; margin: 36px auto 0;
+  background: #fff; color: #1a1a1a;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 1.2rem; font-weight: 700;
+  letter-spacing: 4px; border: none;
+  border-radius: 14px; padding: 14px 52px;
+  cursor: pointer; position: relative;
+  pointer-events: none; opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .65s ease, transform .65s ease;
+  box-shadow: 0 0 0 rgba(200,150,12,0);
+}
+.epi-btn.is-in { opacity: 1; transform: translateY(0); }
+.epi-btn.ready {
+  pointer-events: auto;
+  animation: goldFlicker 1.2s ease-in-out infinite;
+}
+@keyframes goldFlicker {
+  0%,100% { box-shadow: 0 0 8px 2px rgba(200,150,12,.4); }
+  50%      { box-shadow: 0 0 35px 10px rgba(200,150,12,.95), 0 0 70px 20px rgba(200,150,12,.4); }
+}
+
+/* ══ 花瓣飄落 ══ */
+.petal {
+  position: absolute;
+  top: -24px;
+  border-radius: 50% 0 50% 0;
+  pointer-events: none;
+  animation: petalFall linear forwards;
+  z-index: 1;
+}
+@keyframes petalFall {
+  0%   { transform: translateY(0)      translateX(0px)  rotate(0deg);   opacity: .85; }
+  25%  { transform: translateY(25vh)   translateX(22px) rotate(80deg); }
+  50%  { transform: translateY(50vh)   translateX(-16px) rotate(180deg); }
+  75%  { transform: translateY(75vh)   translateX(18px) rotate(265deg); opacity: .45; }
+  100% { transform: translateY(108vh)  translateX(-8px) rotate(360deg); opacity: 0; }
+}
+
+</style>
+</head>
+<body>
+<div id="viewport">
+<div id="canvas">
+
+  <!-- ══ S0：前導頁面（同 index.html）══ -->
+  <section id="scene-intro" class="scene" style="display:flex">
+    <div class="ink-wrap">
+      <div class="ink-group" data-ink="0">
+        <p class="ink-line ink-title">【 叮咚～ 🍦 系統「甜筒」 已上線】</p>
+      </div>
+      <div class="ink-group" data-ink="1">
+        <p class="ink-line">歡迎來到《史料未及：請勿對古人劇透！》</p>
+        <p class="ink-line">你現在的身份，是一名初來乍到的現代穿越者。</p>
+        <p class="ink-line">這座長安城包羅萬象，無論是充滿異國美食與絢麗絲綢的繁華市集，</p>
+        <p class="ink-line">還是匯聚頂級聲學與樂舞的皇家教坊，各種奇遇正等著你去探索。</p>
+      </div>
+      <div class="ink-group" data-ink="2">
+        <p class="ink-line ink-warn">⚠️ 警告：</p>
+        <p class="ink-line ink-warn">請務必藏好你的「現代人」身份！在與唐朝人對話時，</p>
+        <p class="ink-line ink-warn">要是你說出什麼「太過未來」的詞彙，嚇壞了當地百姓。</p>
+      </div>
+      <div class="ink-group" data-ink="3">
+        <p class="ink-line">準備好迎接跨時空的文化衝擊了嗎？</p>
+      </div>
+      <button id="btn-start" class="ink-btn" data-ink="4">開始穿越</button>
+    </div>
+  </section>
+
+  <!-- ══ S1：遊戲主畫面（同 index.html，按鈕名稱保留）══ -->
+  <section id="scene-main" class="scene">
+    <div class="main-grid">
+
+      <div class="map-area">
+        <div class="map-zoom">
+          <img class="map-paper" id="map-paper" alt="">
+          <div class="map-layer">
+            <div class="map-img-wrap">
+              <img class="map-bg" id="map-bg" alt="長安城">
+            </div>
+            <button class="map-logo" id="logo-theater" data-branch="theater" style="top:19%;left:68%" title="大明宮">
+              <span class="logo-icon">🎭</span><span class="logo-lbl">育　樂</span>
+            </button>
+            <button class="map-logo" id="logo-food" data-branch="food" style="top:58%;left:25%" title="西市">
+              <span class="logo-icon">🍜</span><span class="logo-lbl">食　衣</span>
+            </button>
+            <button class="map-logo" id="logo-tbd" data-branch="tbd" style="top:58%;left:75%" title="東市">
+              <span class="logo-icon">🏯</span><span class="logo-lbl">住　行</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="char-area">
+        <div class="char-stack">
+          <div class="poem-wrap">
+            <div class="poem-bubble" id="poetry-bubble">床前明月光，&#10;疑是地上霜。</div>
+          </div>
+          <div class="char-fig"><img class="char-img" id="char-libai" alt="李白"></div>
+          <div class="char-lbl">— 詩仙 李白 —</div>
+          <button class="btn-return-m" id="btn-return-modern">回到現代</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="overlay-return">
+      <div class="modal">
+        <p>⚠️ 警告：現在返回現代將不保留已經歷的長安回憶，確定返回現代?</p>
+        <div class="modal-row">
+          <button class="modal-btn" id="btn-confirm-leave">返回現代</button>
+          <button class="modal-btn active" id="btn-stay">停留唐朝</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ S2A：分支 - 育樂（大明宮）══ -->
+  <section id="scene-branch-theater" class="scene branch-scene">
+    <div class="branch-layout">
+      <div class="branch-map-area">
+        <img class="branch-bg-img" src="/static/assets/image-d780b17dc39d18ee.png" alt="">
+        <img id="bg-overlay-theater" src="/static/assets/image-50ab196b36162720.png" class="branch-bg-overlay" alt="">
+        <img id="npc-walker-theater" src="/static/assets/image-b38501a33957ffd6.png" class="branch-npc-walker" alt="" style="left:15%">
+        <div class="hidden" id="route-nodes-theater">
+          <div id="rn-theater-0"></div>
+          <div id="rn-theater-1"></div>
+          <div id="rn-theater-2"></div>
+          <div id="rn-theater-3"></div>
+        </div>
+        <div class="hidden" id="head-libai-theater"></div>
+        <div class="hidden" id="head-npc-theater"></div>
+        <div class="popup-overlay" id="popup-overlay-theater"></div>
+        <div class="popup-science" id="popup-theater">
+          <img src="/static/assets/image-73f1628cc926404f.png" class="popup-parchment-bg" alt="">
+          <div class="popup-title" id="popup-title-theater"></div>
+          <div class="popup-content" id="popup-text-theater"></div>
+          <button class="btn-skip" id="btn-skip-theater">跳過 skip ›</button>
+        </div>
+      </div>
+      <div class="branch-interact" id="interact-theater">
+        <div class="interact-title">— 你的回應 —</div>
+        <div class="question-box"><p id="q-text-theater">問題載入中…</p></div>
+        <button class="option-btn" id="opt-a-theater"></button>
+        <button class="option-btn" id="opt-b-theater"></button>
+        <div class="input-area">
+          <textarea id="user-input-theater" placeholder="或在此輸入你的想法…" rows="3"></textarea>
+          <button class="btn-send" id="btn-send-theater">傳送</button>
+        </div>
+        <div class="npc-reply" id="npc-reply-theater">
+          <span class="npc-name">雷班主：</span>
+          <span id="npc-reply-text-theater"></span>
+        </div>
+        <button class="btn-back-main" onclick="showScene('scene-main')">← 回主畫面</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ S2B：分支 - 食衣（西市）══ -->
+  <section id="scene-branch-food" class="scene branch-scene">
+    <div class="branch-layout">
+      <div class="branch-map-area">
+        <img class="branch-bg-img" src="/static/assets/image-9d76863bcaaf5b34.png" alt="">
+        <img id="npc-walker-food" src="/static/assets/image-a30e63924cf02380.png" class="branch-npc-walker" alt="" style="left:-20%">
+        <div class="hidden" id="route-nodes-food">
+          <div id="rn-food-0"></div>
+          <div id="rn-food-1"></div>
+          <div id="rn-food-2"></div>
+          <div id="rn-food-3"></div>
+        </div>
+        <div class="hidden" id="head-libai-food"></div>
+        <div class="hidden" id="head-npc-food"></div>
+        <div class="popup-overlay" id="popup-overlay-food"></div>
+        <div class="popup-science" id="popup-food">
+          <img src="/static/assets/image-73f1628cc926404f.png" class="popup-parchment-bg" alt="">
+          <div class="popup-title" id="popup-title-food"></div>
+          <div class="popup-content" id="popup-text-food"></div>
+          <button class="btn-skip" id="btn-skip-food">跳過 skip ›</button>
+        </div>
+      </div>
+      <div class="branch-interact" id="interact-food">
+        <div class="interact-title">— 你的回應 —</div>
+        <div class="question-box"><p id="q-text-food">問題載入中…</p></div>
+        <button class="option-btn" id="opt-a-food"></button>
+        <button class="option-btn" id="opt-b-food"></button>
+        <div class="input-area">
+          <textarea id="user-input-food" placeholder="或在此輸入你的想法…" rows="3"></textarea>
+          <button class="btn-send" id="btn-send-food">傳送</button>
+        </div>
+        <div class="npc-reply" id="npc-reply-food">
+          <span class="npc-name">安掌櫃：</span>
+          <span id="npc-reply-text-food"></span>
+        </div>
+        <button class="btn-back-main" onclick="showScene('scene-main')">← 回主畫面</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ S2C：分支 - 住行（東市）══ -->
+  <section id="scene-branch-tbd" class="scene branch-scene">
+    <div class="branch-layout">
+      <div class="branch-map-area">
+        <img class="branch-bg-img" src="/static/assets/image-36af6ceb01ac57eb.png" alt="">
+        <img id="npc-walker-tbd" src="/static/assets/image-c65fb9be6ca0ef44.png" class="branch-npc-walker" alt="" style="left:-20%">
+        <div class="hidden" id="route-nodes-tbd">
+          <div id="rn-tbd-0"></div>
+          <div id="rn-tbd-1"></div>
+          <div id="rn-tbd-2"></div>
+          <div id="rn-tbd-3"></div>
+        </div>
+        <div class="hidden" id="head-libai-tbd"></div>
+        <div class="hidden" id="head-npc-tbd"></div>
+        <div class="popup-overlay" id="popup-overlay-tbd"></div>
+        <div class="popup-science" id="popup-tbd">
+          <img src="/static/assets/image-73f1628cc926404f.png" class="popup-parchment-bg" alt="">
+          <div class="popup-title" id="popup-title-tbd"></div>
+          <div class="popup-content" id="popup-text-tbd"></div>
+          <button class="btn-skip" id="btn-skip-tbd">跳過 skip ›</button>
+        </div>
+      </div>
+      <div class="branch-interact" id="interact-tbd">
+        <div class="interact-title">— 你的回應 —</div>
+        <div class="question-box"><p id="q-text-tbd">問題載入中…</p></div>
+        <button class="option-btn" id="opt-a-tbd"></button>
+        <button class="option-btn" id="opt-b-tbd"></button>
+        <div class="input-area">
+          <textarea id="user-input-tbd" placeholder="或在此輸入你的想法…" rows="3"></textarea>
+          <button class="btn-send" id="btn-send-tbd">傳送</button>
+        </div>
+        <div class="npc-reply" id="npc-reply-tbd">
+          <span class="npc-name">裴掌櫃：</span>
+          <span id="npc-reply-text-tbd"></span>
+        </div>
+        <button class="btn-back-main" onclick="showScene('scene-main')">← 回主畫面</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ S3A：展演 - 育樂 ══ -->
+  <section id="scene-performance-theater" class="scene performance-scene">
+    <div class="perf-layout">
+      <div class="perf-left">
+        <img class="perf-img" id="perf-img-theater" src="" alt="">
+      </div>
+      <div class="perf-right">
+        <div class="perf-right-title" id="perf-title-theater">大唐盛世·音樂饗宴</div>
+        <div class="perf-science-scroll">
+          <p id="perf-popup-text-theater" class="perf-science-body"></p>
+        </div>
+        <button class="btn-end-exp" id="btn-end-theater" style="position:static;align-self:flex-end;margin-top:auto">結束體驗 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ S3B：展演 - 食衣 ══ -->
+  <section id="scene-performance-food" class="scene performance-scene">
+    <div class="perf-layout">
+      <div class="perf-left">
+        <img class="perf-img" id="perf-img-food" src="" alt="">
+      </div>
+      <div class="perf-right">
+        <div class="perf-right-title" id="perf-title-food">大唐盛世·食衣珍藏</div>
+        <div class="perf-science-scroll">
+          <p id="perf-popup-text-food" class="perf-science-body"></p>
+        </div>
+        <button class="btn-end-exp" id="btn-end-food" style="position:static;align-self:flex-end;margin-top:auto">結束體驗 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ S3C：展演 - 住行 ══ -->
+  <section id="scene-performance-tbd" class="scene performance-scene">
+    <div class="perf-layout">
+      <div class="perf-left">
+        <img class="perf-img" id="perf-img-tbd" src="" alt="">
+      </div>
+      <div class="perf-right">
+        <div class="perf-right-title" id="perf-title-tbd">大唐盛世·城建奇觀</div>
+        <div class="perf-science-scroll">
+          <p id="perf-popup-text-tbd" class="perf-science-body"></p>
+        </div>
+        <button class="btn-end-exp" id="btn-end-tbd" style="position:static;align-self:flex-end;margin-top:auto">結束體驗 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ S4：返回現代 ══ -->
+  <section id="scene-return" class="scene">
+    <div class="ticket-container">
+      <div class="ticket-frame">
+        <img src="/static/assets/image-fb98ed33cf5c66c5.png" class="ticket-bg-img" alt="電影票">
+        <img src="/static/assets/image-a2bb33403ed5f2cd.png" class="stamp-img" id="stamp-theater" alt="">
+        <img src="/static/assets/image-a177fa13f1288058.png" class="stamp-img" id="stamp-food" alt="">
+        <img src="/static/assets/image-489338df2fc935d8.png" class="stamp-img" id="stamp-tbd" alt="">
+      </div>
+      <button class="btn-restart" id="btn-restart">↺ 重新穿越</button>
+    </div>
+  </section>
+
+  <!-- 昏迷淡出遮罩 -->
+  <div id="tv-shutoff"></div>
+
+  <!-- 尾聲 / 結束畫面 -->
+  <div id="scene-epilogue">
+    <div class="epi-wrap">
+      <div class="ink-group epi-group" data-epi="0">
+        <p class="ink-line">長安的繁華如同一場絢麗的幻夢，正隨暮鼓聲漸漸遠去。</p>
+      </div>
+      <div class="ink-group epi-group" data-epi="1">
+        <p class="ink-line">但這趟跨越千年的旅程，卻無比真實。</p>
+      </div>
+      <div class="ink-group epi-group" data-epi="2">
+        <p class="ink-line">臨行之際，歷史的溫度化作了三道軌跡。</p>
+      </div>
+      <div class="ink-group epi-group" data-epi="3">
+        <p class="ink-line">請帶著這份專屬於你的大唐記憶，重返你的時代。</p>
+      </div>
+      <button id="btn-end-journey" class="epi-btn" data-epi="4">結　束　旅　程</button>
+    </div>
+  </div>
+
+<div id="transition-overlay"></div>
+</div><!-- #canvas -->
+</div><!-- #viewport -->
+
+<script>
+/* embedded from index.html */
+const LIBAI_IMG="/static/assets/image-3a78256ecac3d6ca.png";
+(function(){var el=document.getElementById("char-libai");if(el)el.src=LIBAI_IMG;})();
+const MAP_BG="/static/assets/image-b4b25ffab333109d.png";
+const BRANCH1_BG="/static/assets/image-d780b17dc39d18ee.png";
+const BRANCH2_BG="/static/assets/image-9d76863bcaaf5b34.png";
+const POPUP_PAPER="/static/assets/image-73f1628cc926404f.png";
+(function(){var el=document.getElementById("map-bg");if(el)el.src=MAP_BG;})();
+
+const PRELOADED_IMAGES = new Set();
+
+function preloadImage(src) {
+  if (!src || PRELOADED_IMAGES.has(src)) return;
+  PRELOADED_IMAGES.add(src);
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = src;
+}
+
+function preloadImages(images) {
+  (images || []).forEach(preloadImage);
+}
+
+function preloadQuestionAssets(branch, qIndex) {
+  const q = BRANCH_DATA[branch]?.questions?.[qIndex];
+  if (!q) return;
+  preloadImages(q.scienceImages);
+}
+
+// ══════════════════════════════════════════
+//  全域狀態
+// ══════════════════════════════════════════
+const GameState = {
+  branches: {
+    theater: { completed: false, finalChoice: null, finalImage: null, finalEmoji: '🎭' },
+    food:    { completed: false, finalChoice: null, finalImage: null, finalEmoji: '🍵' },
+    tbd:     { completed: false, finalChoice: null, finalImage: null, finalEmoji: '🏯' },
+  },
+  allCompleted() {
+    return Object.values(this.branches).every(b => b.completed);
+  }
+};
+
+// ══════════════════════════════════════════
+//  API 設定
+// ══════════════════════════════════════════
+const DIALOGUE_API_URL = '/api/dialogue';
+const DIALOGUE_FALLBACK_REPLY = '回覆額度用盡，請選既有選項';
+
+// ══════════════════════════════════════════
+//  分支資料
+// ══════════════════════════════════════════
+const BRANCH_DATA = {
+  theater: {
+    npcName: '雷班主',
+    questions: [
+      {
+        qText: '這歌聲怎麼這麼大聲？舞台上到底藏了什麼秘密？',
+        optA: '🎙️ 舞台地板下是不是偷藏了喇叭…我是說擴音的東西?',
+        optB: '😮 這歌手肺活量也太扯了吧！怎麼辦到的？',
+        defaultNpcReplyA: '哈哈，非也非也！這可不是喇叭。這木板底下大有乾坤，我們在戲台正下方的土裡，按陣法埋了三十六口巨大的「空心陶甕」。歌姬一開嗓，聲音灌入甕中激盪，這「甕城之音」自然就宏亮圓潤了。',
+        defaultNpcReplyB: '哈哈，非也非也！這可不全憑肺活量。這木板底下大有乾坤，我們在戲台正下方的土裡，按陣法埋了三十六口巨大的「空心陶甕」。歌姬一開嗓，聲音灌入甕中激盪，這「甕城之音」自然就宏亮圓潤了。',
+        scienceTitle: '💡 科普視窗 1：甕城之音',
+        scienceText: '在缺乏電子設備的古代，工匠利用陶甕進行物理擴音。戰國典籍《墨子》即記載了埋甕聽音辨位的「地聽」防禦術。後世將此技術應用於戲台建築，於舞台正下方按陣列埋設多口大型空心陶甕或水缸。\n\n當人聲或樂聲傳入甕中，會引發聲學上的「空腔共鳴」，使特定頻率的聲音瞬間放大並增加渾厚感，其物理機制等同於現代的重低音音箱。\n\n此古代建築聲學技術在台灣仍有實體保留，台中霧峰林家花園「大花廳」的福州戲台正下方，至今仍安放著用於擴音的大型水缸。',
+        scienceImages: ['/static/assets/image-de238e620c18e45f.jpg', '/static/assets/image-4f383810f7ab75ce.jpg'],
+        nodePositionPercent: { top: '72%', left: '30%' },
+      },
+      {
+        qText: '共鳴這麼強，聲音不會變得很吵雜嗎？怎麼還這麼純淨？',
+        optA: '🏗️ 天花板掛那些布，是古代的吸音棉嗎？',
+        optB: '📡 共鳴這麼強，回音不會互相干擾嗎？',
+        defaultNpcReplyA: '郎君好耳力！若只是傻傻埋甕，回音確實會吵成一團。你看頭頂這八角藻井，還有四面懸掛的厚重絲綢幔帳！加上這戲台選用質地鬆軟的松木，這些佈置能吸走刺耳的雜音。留下的，便只有純淨無瑕的歌聲了。',
+        defaultNpcReplyB: '郎君好耳力！若只是傻傻埋甕，回音確實會吵成一團。你看頭頂這八角藻井，還有四面懸掛的厚重絲綢幔帳！加上這戲台選用質地鬆軟的松木，這些佈置能吸走刺耳的雜音。留下的，便只有純淨無瑕的歌聲了。',
+        scienceTitle: '💡 科普視窗 2：軟裝吸音',
+        scienceText: '為了抑制共鳴所產生的空間殘響與回聲，古人將物理降噪技術融入室內建築裝飾。\n\n五代名畫《韓熙載夜宴圖》詳實描繪了室內演奏時懸掛厚重絲綢幔帳的場景；敦煌莫高窟唐代壁畫亦可見戲台頂部向內凹陷的「藻井」結構。\n\n從聲學角度分析，多孔隙的絲綢幔帳與木材具備現代「吸音棉」的作用，能有效吸收高頻雜音；而結構複雜的藻井則等同於「聲學擴散板」，負責將聲音均勻漫射，避免產生駐波干擾。\n\n台灣彰化鹿港龍山寺戲台上方懸掛的全台最大木造八卦藻井，即是古代聚音與擴散聲學技術的完美保留。',
+        scienceImages: ['/static/assets/image-2d24cceec36d246d.jpg', '/static/assets/image-cb6acf9ecda671b9.jpg'],
+        nodePositionPercent: { top: '48%', left: '44%' },
+      },
+      {
+        qText: '這麼多樂手，怎麼知道何時一起演奏？',
+        optA: '🎧 樂手沒戴耳機，怎麼知道何時該進歌？',
+        optB: '🎼 這麼大編制的樂隊，怎麼沒看到指揮？',
+        defaultNpcReplyA: '要讓幾十種樂器完美契合，全靠前頭那位拿著「拍板」的樂師打節拍啊！他坐在聲音匯聚的陣眼上引領全場。哎呀，不說了，拍板一響，主秀正式開始了！郎君快快隨我入座，好好用耳朵品鑑大唐的清音吧！',
+        defaultNpcReplyB: '要讓幾十種樂器完美契合，全靠前頭那位拿著「拍板」的樂師打節拍啊！他坐在聲音匯聚的陣眼上引領全場。哎呀，不說了，拍板一響，主秀正式開始了！郎君快快隨我入座，好好用耳朵品鑑大唐的清音吧！',
+        scienceTitle: '💡 科普視窗 3：拍板指揮',
+        scienceText: '在編制龐大的古代樂團中，「拍板」是控制全場節奏的核心樞紐。唐代《樂府雜錄》文獻及敦煌莫高窟第112窟「反彈琵琶」壁畫中，均留有樂師手持木板敲擊的紀載。\n\n拍板撞擊時會產生極具穿透力的高頻短促音（瞬態訊號），此聲學特性使其在絲竹管弦的長音合奏中不易被掩蔽。負責拍板的樂師透過敲擊聲來統一樂曲的演奏速度，功能等同於現代交響樂團的指揮家與電子節拍器。\n\n此項樂隊編制傳統延續至今，在台灣的傳統南管、北管音樂，以及歌仔戲「文武場」的伴奏中，仍由特定樂師敲擊木製拍板來引導全場節奏。',
+        scienceImages: ['/static/assets/image-5309ea2893bc1c56.jpg', '/static/assets/image-e0aeeee3e7fb0d2e.jpg'],
+        scienceImagesCentered: true,
+        nodePositionPercent: { top: '24%', left: '58%' },
+      },
+    ],
+    finalOptions: [
+      { text: '🪷 霓裳羽衣舞（盛唐頂級皇家仙氣舞蹈）', image: '/static/assets/image-20bb0579a87bf526.png', emoji: '🪷',
+        scienceSnippet: `霓裳羽衣舞是唐代最高規格的皇家宮廷樂舞，展現了東方古典唯美主義的極致。此曲由唐玄宗親自作曲、楊貴妃編舞，白居易《霓裳羽衣歌》中詳實記錄了其舞姿與音樂結構。在音樂原理上，它完美融合了西域傳入的音階與中原傳統清商樂；在展演編制上則具備嚴格的階級限制，全盛時期僅限於皇室禁苑（如華清池）內演出，專供皇室與外國使節觀賞。其歷史地位與展演封閉性，等同於現代國家級的皇家宮廷芭蕾或最高級別的國宴主秀。雖然原版樂譜已隨安史之亂佚失，但現代學者仍透過宋代姜夔留下的殘譜進行部分復原，讓此盛唐之音得以在現代大型古典舞劇中重現。` },
+      { text: '🌀 胡旋舞（西域傳入·節奏極限動感快舞）', image: '/static/assets/image-48437504602e8f1e.jpg', objectFit: 'contain', emoji: '🌀',
+        scienceSnippet: `胡旋舞是源自西域康國（今烏茲別克）的高難度舞蹈，以極限的高速連續旋轉為核心特色。唐代白居易撰有《胡旋女》一詩生動描述其動態，敦煌莫高窟第220窟《藥師經變圖》中亦留有明確的樂舞壁畫實證。從人體生理與物理學視角分析，舞者立於小圓毯上疾轉如風，需要極強的核心肌群力量與前庭神經系統控制力，才能克服高速旋轉產生的強大離心力與視覺眩暈，精準維持重心平衡。其身體控制技術，等同於現代花式滑冰的冰上高速旋轉或芭蕾舞的連續旋轉（Fouetté）。這種以人體為軸心維持動態平衡的舞蹈機制，至今仍鮮活地保留於新疆傳統舞蹈及中東著名的「蘇菲旋轉舞」之中。` },
+      { text: '⚔️ 秦王破陣樂（大編制·氣勢磅礴軍樂戰舞）', image: '/static/assets/image-8a27009762e4611a.jpg', objectFit: 'contain', emoji: '⚔️',
+        scienceSnippet: `秦王破陣樂創立於唐太宗時期，是唐代為頌揚帝國武功而創作的大型軍事樂舞。唐代《舊唐書·音樂志》詳細記載了其創製過程，玄奘的《大唐西域記》更證明此曲曾遠播至古印度。在聲學與視覺展演上，演出動用高達一百二十人披甲執戟的龐大陣列，配合巨大戰鼓與號角，透過大型打擊樂器產生的低頻宏大聲場與舞者精確的幾何陣型轉換，製造出極強的視聽震撼與軍事威懾力。其展演規模與功能，等同於現代國家級的國慶閱兵樂儀隊大典或史詩級的大型交響合唱。這項宏大的皇家軍樂於唐代傳入日本後，至今仍能在日本傳統「雅樂」中尋得其殘譜與部分舞姿，成為大唐盛世流傳海外的珍貴文化活化石。` },
+    ],
+  },
+
+  food: {
+    npcName: '安掌櫃',
+    questions: [
+      {
+        qText: '長安夏天這麼熱，這些食物不會壞嗎？要怎麼保存？',
+        optA: '🍞 這烤餅現在買了，要是帶回客棧冷掉變硬怎麼辦？你們有什麼可以快速加熱的爐子嗎？',
+        optB: '🥩 長安夏天這麼熱，市集裡的肉都不會壞嗎？我看你們也沒放冰塊鎮著，買回去要怎麼保存？',
+        defaultNpcReplyA: '哎呀！郎君這是說什麼傻話？咱們大唐人吃東西的本事有兩套：一是現做現吃——你瞧這胡餅，剛從胡餅爐裡烤出來，燙手的才好吃，放涼了早就被搶光了，誰還帶回去熱？二是香料醃製——鮮肉若吃不完，胡椒、鹽、薑大量抹入做成臘肉，放上數月都不壞，哪裡需要天天用冰鎮著！',
+        defaultNpcReplyB: '哎呀！郎君這是說什麼傻話？咱們大唐人吃東西的本事有兩套：一是現做現吃——你瞧這胡餅，剛從胡餅爐裡烤出來，燙手的才好吃，放涼了早就被搶光了，誰還帶回去熱？二是香料醃製——鮮肉若吃不完，胡椒、鹽、薑大量抹入做成臘肉，放上數月都不壞，哪裡需要天天用冰鎮著！',
+        scienceTitle: '💡 科普視窗 1：唐代的鮮與存',
+        scienceText: '唐代沒有冰箱與微波爐，但長安人解決「吃」的方式既實際又聰明。\n\n【現做現吃：胡餅與胡餅爐】\n長安西市最流行的街頭速食是胡餅（撒有芝麻的烤餅）。烘烤用的「胡餅爐」是專用大型烤爐，師傅把麵糰貼在爐壁內側靠炭火高溫烤熟，出爐外脆內軟、芝麻飄香，詩人白居易曾寫詩誇讚「面脆油香新出爐」。\n\n【香料醃製：臘肉的老祖宗】\n保存肉類靠的是大量的胡椒、鹽與薑，製成臘肉或醃肉，數月不壞，這正是中式臘肉與香腸的起源。皇室貴族確實有地下「冰井」，甚至用冰製作「酥山」——唐代頂級夏日冰品！',
+        scienceImages: ['/static/assets/image-1aaacda00f47a7ee.jpg', '/static/assets/image-f1cb72e1c6ef7ded.jpg'],
+        nodePositionPercent: { top: '72%', left: '30%' },
+      },
+      {
+        qText: '這衣服好看是好看，但穿脫這麼麻煩，這布料悶熱嗎？',
+        optA: '👗 你們這衣服全身都是帶子，穿脫也太麻煩了吧？就沒有一種一拉就能合上的設計嗎？',
+        optB: '🌡️ 長安這麼悶熱，穿這層層疊疊的布料不會滿身汗嗎？你們這布料透氣嗎？',
+        defaultNpcReplyA: '一拉就合上？郎君的腦袋裡裝的都是些什麼奇巧機關啊！咱們大唐的衣裳，講究的是料子和綁法。料子嘛，蜀錦、絲綢才是天下第一，輕薄透氣、光澤流動，您那衣裳摸著滑溜卻無光氣，差得遠了！綁法呢，靠的是腰間繫帶與蹀躞帶，不但固定衣裳，還能掛刀、掛香囊，俐落又體面，這叫規矩！',
+        defaultNpcReplyB: '一拉就合上？郎君的腦袋裡裝的都是些什麼奇巧機關啊！咱們大唐的衣裳，講究的是料子和綁法。料子嘛，蜀錦、絲綢才是天下第一，輕薄透氣、光澤流動，您那衣裳摸著滑溜卻無光氣，差得遠了！綁法呢，靠的是腰間繫帶與蹀躞帶，不但固定衣裳，還能掛刀、掛香囊，俐落又體面，這叫規矩！',
+        scienceTitle: '💡 科普視窗 2：沒有拉鍊的絲綢帝國',
+        scienceText: '拉鍊發明於1891年，合成纖維發明於1940年代——唐代的衣服靠的是最古老也最優雅的工藝：天然布料加上繫帶固定。\n\n【唐代服飾關鍵字】\n‧ 交領右衽：衣領向右交疊，是中原傳統服飾的基本形制（左衽是胡人或逝者的穿法！）\n‧ 蹀躞帶：源自北方遊牧民族的多環皮腰帶，可掛刀子、磨刀石、針筒、火石袋等，堪稱唐代的「多功能腰包」。\n‧ 布料階級：絲綢錦緞→貴族；細絹→小康；麻、葛→平民\n\n冷知識：頂級蜀錦的蠶絲纖維極為細緻，天然透氣且帶有獨特光澤——某種程度上，它比很多現代化纖布料更舒適涼爽！',
+        scienceImages: ['/static/assets/image-9c167ea8723b96d0.jpg', '/static/assets/image-36b6aa02035033df.jpg'],
+        nodePositionPercent: { top: '48%', left: '44%' },
+      },
+      {
+        qText: '我想買一套那種大紅或正黃色的絲綢衣服，多少錢？',
+        optA: '🟡 我看那邊掛著一匹正黃色的絲綢，我想用那顏色做套衣服上街，可以嗎？',
+        optB: '🔴 剛剛看到騎馬過去的官員穿的那身大紅袍子挺帥的，我想訂做一套，多少錢？',
+        defaultNpcReplyA: '（嚇得捂住你的嘴）噓！郎君快噤聲！您不想活啦？在長安城，紫、緋（紅）可是三品以上大員才能穿的官服！黃色更是聖上專用！咱們平民百姓就算富可敵國，也只能穿白、黑或粗麻色。要是亂穿上街，可是要被金吾衛抓去打板子的！哎呀，不說這些掉腦袋的話了，您初來乍到，想先嚐點什麼，還是換身大唐的行頭？',
+        defaultNpcReplyB: '（嚇得捂住你的嘴）噓！郎君快噤聲！您不想活啦？在長安城，紫、緋（紅）可是三品以上大員才能穿的官服！黃色更是聖上專用！咱們平民百姓就算富可敵國，也只能穿白、黑或粗麻色。要是亂穿上街，可是要被金吾衛抓去打板子的！哎呀，不說這些掉腦袋的話了，您初來乍到，想先嚐點什麼，還是換身大唐的行頭？',
+        scienceTitle: '💡 科普視窗 3：唐代服色制度（品色服）',
+        scienceText: '現代人可以自由選擇衣服顏色，但在唐代，顏色是政治與階級的公開宣示。\n\n唐代「品色服」制度：\n三品以上 → 紫色（最高階，「紫袍加身」是功成名就象徵）\n四～五品 → 緋色（朱紅，中高階官員）\n六～七品 → 綠色（中階官員）\n八～九品 → 青色（基層官員）\n平民百姓 → 白色 / 黑色（又稱「白丁」）\n皇帝 → 黃色（任何人不得僭越）\n\n「大紅大紫」這個成語，正是從唐代品色服制度而來——紅與紫是最顯赫的顏色，穿上就代表位居朝廷高位。亂穿顏色不是被人笑——是要被抓去打板子的！',
+        scienceImages: ['/static/assets/image-5b7c72a09a44edf1.jpg'],
+        scienceImagesCentered: true,
+        nodePositionPercent: { top: '24%', left: '58%' },
+      },
+    ],
+    finalOptions: [
+      { text: '💎 鑲金獸首瑪瑙杯（胡商風情·絲路頂級酒具）', image: '/static/assets/image-5bb09534321df906.png', emoji: '💎',
+        scienceSnippet: `唐代是中國歷史上最「胡漢融合」的時代，長安西市更是當時世界的潮流中心。一個波斯商人、一個長安廚師、一個四川織工，可以在同一條街上做生意——這在人類歷史上是非常罕見的景象。\n\n食與飲的器具： 絲路帶來了小麥、胡椒與葡萄酒。您剛才看到的「鑲金獸首瑪瑙杯」，其造型源自西方的「來通杯」，完美證明了西域狂飲文化對大唐的影響；而「越窯青瓷」則盛裝著文人雅士的清雅茶湯。從西域的葡萄酒到本土的煎茶，長安的餐桌上包容了整個世界。\n\n衣與飾的工藝： 唐代打破了傳統的保守，女性穿著展露線條的「齊胸襦裙」，並佩戴精緻的飾品。那件「葡萄花鳥紋銀香囊」不僅雕工精美，內部更藏有類似現代「陀螺儀」的平衡機關，無論怎麼晃動，香灰都不會灑出！這是將生活美學與頂尖工藝完美結合的服飾配件。\n\n科技也許不如現代，但唐朝人對生活美學的追求、對異國文化的包容，以及令人驚嘆的職人手藝，造就了這場流傳千古的感官盛宴！` },
+      { text: '🍵 越窯青瓷蓮花碗（文人雅士·千峰翠色茶具）', image: '/static/assets/image-6905479215fb0ed8.png', emoji: '🍵',
+        scienceSnippet: `唐代是中國歷史上最「胡漢融合」的時代，長安西市更是當時世界的潮流中心。一個波斯商人、一個長安廚師、一個四川織工，可以在同一條街上做生意——這在人類歷史上是非常罕見的景象。\n\n食與飲的器具： 絲路帶來了小麥、胡椒與葡萄酒。您剛才看到的「鑲金獸首瑪瑙杯」，其造型源自西方的「來通杯」，完美證明了西域狂飲文化對大唐的影響；而「越窯青瓷」則盛裝著文人雅士的清雅茶湯。從西域的葡萄酒到本土的煎茶，長安的餐桌上包容了整個世界。\n\n衣與飾的工藝： 唐代打破了傳統的保守，女性穿著展露線條的「齊胸襦裙」，並佩戴精緻的飾品。那件「葡萄花鳥紋銀香囊」不僅雕工精美，內部更藏有類似現代「陀螺儀」的平衡機關，無論怎麼晃動，香灰都不會灑出！這是將生活美學與頂尖工藝完美結合的服飾配件。\n\n科技也許不如現代，但唐朝人對生活美學的追求、對異國文化的包容，以及令人驚嘆的職人手藝，造就了這場流傳千古的感官盛宴！` },
+      { text: '🌸 葡萄花鳥紋銀香囊（盛唐工藝·內藏陀螺儀機關）', image: '/static/assets/image-4fc9c7e8041535f4.png', emoji: '🌸',
+        scienceSnippet: `唐代是中國歷史上最「胡漢融合」的時代，長安西市更是當時世界的潮流中心。一個波斯商人、一個長安廚師、一個四川織工，可以在同一條街上做生意——這在人類歷史上是非常罕見的景象。\n\n食與飲的器具： 絲路帶來了小麥、胡椒與葡萄酒。您剛才看到的「鑲金獸首瑪瑙杯」，其造型源自西方的「來通杯」，完美證明了西域狂飲文化對大唐的影響；而「越窯青瓷」則盛裝著文人雅士的清雅茶湯。從西域的葡萄酒到本土的煎茶，長安的餐桌上包容了整個世界。\n\n衣與飾的工藝： 唐代打破了傳統的保守，女性穿著展露線條的「齊胸襦裙」，並佩戴精緻的飾品。那件「葡萄花鳥紋銀香囊」不僅雕工精美，內部更藏有類似現代「陀螺儀」的平衡機關，無論怎麼晃動，香灰都不會灑出！這是將生活美學與頂尖工藝完美結合的服飾配件。\n\n科技也許不如現代，但唐朝人對生活美學的追求、對異國文化的包容，以及令人驚嘆的職人手藝，造就了這場流傳千古的感官盛宴！` },
+    ],
+  },
+
+  tbd: {
+    npcName: '裴掌櫃',
+    questions: [
+      {
+        qText: '這輛馬車走在青石路上怎麼這麼平穩？車廂和車軸之間藏了什麼玄機？',
+        optA: '🪵 我看車軸與車廂連接處額外墊了多層厚皮革與弧形木塊，這是為了減緩震動嗎？',
+        optB: '🔗 這車廂好像不是死死釘在車軸上，而是透過皮革帶子「懸吊」在支架上？',
+        defaultNpcReplyA: '郎君真是好眼光！這正是我們東市最頂級的馬車工藝。我們在車架上安裝了特製的「伏兔」與「當兔」木件，並用熟牛肉皮包裹。當車輪壓過青石路面，這些機關與皮革便會互相擠壓，將大地的震動化於無形，這才配得上城內貴人們的出行排場！',
+        defaultNpcReplyB: '郎君真是好眼光！這正是我們東市最頂級的馬車工藝。我們在車架上安裝了特製的「伏兔」與「當兔」木件，並用熟牛肉皮包裹。當車輪壓過青石路面，這些機關與皮革便會互相擠壓，將大地的震動化於無形，這才配得上城內貴人們的出行排場！',
+        scienceTitle: '💡 科普視窗 1：伏兔與懸吊系統',
+        scienceText: '傳統車輿構造中，為了克服硬質車輪在青石路面上產生的強大衝擊力，發展出了精密的物理減震設計。唐代高級馬車在車軸與車輿底座之間，普遍裝有形似伏兔的木製緩衝墊（稱為「伏兔」），並在關鍵節點包裹具備高彈性的牛皮或多層織物。部分頂級禮車更採用了「皮革懸吊法」，將車廂以強韌的皮帶懸掛於外在支架上。從力學視角分析，此設計利用了彈性材料的形變與摩擦力，吸收並耗散了地面傳導的震動能量。這種不依賴金屬彈簧，純粹依靠木料幾何與皮革張力來達成車體平穩的構造，完美展現了古代東方車輿工程中「以柔克剛」的極致物理智慧。',
+        scienceImages: ['/static/assets/image-d6760033337de7eb.jpg', '/static/assets/image-1ea13563aaa8ef02.png'],
+        nodePositionPercent: { top: '72%', left: '30%' },
+      },
+      {
+        qText: '這倉庫堆得這麼滿，木造建築萬一失火或垮塌怎麼辦？',
+        optA: '🏗️ 這倉庫堆滿沉重絲綢與瓷器，比屋梁還高——這棟木造倉庫梁柱怎麼撐住不塌陷？',
+        optB: '🔥 東市商賈雲集，萬一失火，木造倉庫密密麻麻，要怎麼防止大火瞬間燒光一切？',
+        defaultNpcReplyA: '哈哈，郎君有所不知。我們這倉庫的梁柱皆採用了「減柱法」與雙重橫梁承重，確保地基穩固。至於防火，我們在每間庫房之間都築起了高達數丈、塗抹了耐火泥漿的「隔火坊牆」。縱使隔壁鄰居失火，火勢也絕對燒不進我的倉庫！',
+        defaultNpcReplyB: '哈哈，郎君有所不知。我們這倉庫的梁柱皆採用了「減柱法」與雙重橫梁承重，確保地基穩固。至於防火，我們在每間庫房之間都築起了高達數丈、塗抹了耐火泥漿的「隔火坊牆」。縱使隔壁鄰居失火，火勢也絕對燒不進我的倉庫！',
+        scienceTitle: '💡 科普視窗 2：邸店坊牆',
+        scienceText: '唐代東市的「邸店」是兼具商品貿易、旅客下榻與大宗貨資保管的複合式物流中樞。面對高密度貨物存放所帶來的承重與火災隱患，唐代工匠在土木工程上採取了嚴格的規範。\n\n倉庫內部利用多層梁架結構與柱網優化提升垂直承重力；在消防安全上，則強制在建築群之間修築由夯土製成、表面塗抹耐火熟石灰或泥漿的「隔火牆（防火牆）」。\n\n此種空間物理隔離與耐火材料的應用，能有效阻絕熱輻射與火勢蔓延，其設計邏輯與現代大型物流倉儲的「防火分區」完全一致。',
+        scienceImages: ['/static/assets/image-3d0cff373d5698b9.jpg', '/static/assets/image-155bc1532433de1b.png'],
+        nodePositionPercent: { top: '48%', left: '44%' },
+      },
+      {
+        qText: '這些木料上刻著凹槽和編號，蓋房子完全不用鐵釘，這怎麼可能穩固？',
+        optA: '🔢 這些木梁每塊都事先刻好複雜凹槽與編號，難道是為了像玩具一樣直接拼裝起來？',
+        optB: '🌲 完全不用一根鐵釘、只靠木頭凹凸咬合——日子久了木頭乾裂膨脹，結構不會鬆動散架嗎？',
+        defaultNpcReplyA: '不用鐵釘才是最穩固的！這些凹凸機關叫作「榫卯」。我們在工房內將木料依據設計精準裁切完畢，標上天干地支，運到府邸現場後只需對號入座、直接合攏。這木頭互相咬合，遇到地動（地震）還能自行卸力，越晃越緊，豈是易生鏽的鐵釘能比擬的？',
+        defaultNpcReplyB: '不用鐵釘才是最穩固的！這些凹凸機關叫作「榫卯」。我們在工房內將木料依據設計精準裁切完畢，標上天干地支，運到府邸現場後只需對號入座、直接合攏。這木頭互相咬合，遇到地動（地震）還能自行卸力，越晃越緊，豈是易生鏽的鐵釘能比擬的？',
+        scienceTitle: '💡 科普視窗 3：榫卯與預製大木作',
+        scienceText: '高規格府邸的營造，高度依賴將作監與民間高級材木肆所發展的「預製大木作」技術。工匠在後方工房內，便依據極其精密的幾何比例，在木構件上完成「榫」與「卯」的切割，並標註組裝順序代碼。運抵施工現場後，不需使用鐵釘，純粹利用木件結構的幾何咬合進行拼裝。從材料力學分析，榫卯節點具備「彈塑性變形」的特質，在面對地震等外力衝擊時，能透過微小位移吸收能量，達到極佳的抗震效果，其概念等同於現代建築工程的「預製裝配式建築（Modular Construction）」。',
+        scienceImages: ['/static/assets/image-ff31aeb9443853e7.jpg', '/static/assets/image-a534d3f392c25a87.jpg'],
+        scienceImagesCentered: true,
+        nodePositionPercent: { top: '24%', left: '58%' },
+      },
+    ],
+    finalOptions: [
+      { text: '🐪 跟隨馬匹與駝隊車輿（見識跨越西域的國際商隊調度）', image: '/static/assets/image-553a5b267c03978b.png', emoji: '🐪',
+        scienceSnippet: '【國際貿易的交通樞紐：東市車馬與駝隊物流】\n長安東市是唐代絲綢之路與國內水陸交通的終端物流核心，其車輿調度與牲畜管理展現了極高的集體運輸水準。唐代文獻紀載東市內設有專門的馬肆與車輿行，負責數萬匹騾馬、駱駝的檢疫、交易與維修。在運輸管理上，官府與大商行制定了嚴格的車輛軸距標準與載重規範，並透過標準化的車輿組件更換，確保長途商隊能高效運作。這種大規模的交通工具整備與跨國物流調度系統，等同於現代國際貿易中的大型陸運貨運集散中心與跨國物流車隊。' },
+      { text: '🪵 前往材木肆見識巨木運送（皇家宮殿棟樑的水路之旅）', image: '/static/assets/image-4d6909c095b38853.png', emoji: '🌲',
+        scienceSnippet: '【帝國命脈的建材運輸：渠水與材木物資鏈】\n東市的材木肆是長安城營造皇家宮殿與貴族邸宅的建材樞紐，其物資運輸網絡體現了唐代超前的空間物流規劃。興建大型木造建築所需的高大杉木與楠木，多產於長江流域或秦嶺深山，唐代工匠利用自然水系將巨木編組為「木筏」，經由長江、漢水，再透過人工開鑿的廣通渠與清明渠直接順流運抵東市專屬的水碼頭。這種善用自然流體動能、免除陸路高昂人力成本的巨型物資運送機制，在物流工程上等同於現代大宗原物料的航道大宗運輸系統。' },
+      { text: '💰 視察邸店的地下金庫與櫃坊（大唐的信用資產轉運術）', image: '/static/assets/image-1f999470ebd13c5f.png', emoji: '💰',
+        scienceSnippet: '【大唐的信用與資產轉運：櫃坊金融物流】\n隨著東市商業與住行貿易的極度發達，長安城內誕生了中國歷史上最早的金融資產轉運機構——櫃坊。根據唐代筆記小說與官府文獻紀載，富商大賈因攜帶成千上萬貫的銅錢出行不便且具風險，便將金銀與財資寄存於東市的櫃坊，取得由櫃坊簽發的信用憑證（貼子或剳子）。在進行大宗車馬或建材交易時，雙方只需憑票據在櫃坊進行資金劃撥，不需搬運實體貨幣。這種資產保管與信用轉移的運作邏輯，完美具備了現代商業銀行支票結算與資金清算中心的基礎功能。' },
+    ],
+  },
+};
+
+// ══════════════════════════════════════════
+//  畫布縮放
+// ══════════════════════════════════════════
+function scaleCanvas(){
+  const vp=document.getElementById('viewport');
+  const c=document.getElementById('canvas');
+  const W=1280;
+  const s=vp.clientWidth/W;
+  c.style.transform=`scale(${s})`;
+}
+window.addEventListener('resize',scaleCanvas);
+if(window.visualViewport){window.visualViewport.addEventListener('resize',scaleCanvas);}
+
+// ══════════════════════════════════════════
+//  場景切換
+// ══════════════════════════════════════════
+function showScene(id) {
+  document.querySelectorAll('.scene').forEach(s => {
+    s.style.display = 'none';
+  });
+  const target = document.getElementById(id);
+  if (target) {
+    const isFlex = ['scene-intro','scene-main','scene-return'].includes(id);
+    target.style.display = isFlex ? 'flex' : 'block';
+  }
+}
+
+// ══════════════════════════════════════════
+//  S0：前導頁面
+// ══════════════════════════════════════════
+const INTRO_STEPS=[0,900,1800,2700,3600];
+let introTimers=[];
+function initIntro(){
+  const btn=document.getElementById('btn-start');
+  const steps=document.querySelectorAll('#scene-intro [data-ink]');
+  introTimers.forEach(clearTimeout);
+  introTimers=[];
+  steps.forEach(el=>el.classList.remove('is-in'));
+  btn.classList.remove('ready');
+  steps.forEach((el,i)=>{
+    introTimers.push(setTimeout(()=>{
+      el.classList.add('is-in');
+      if(el===btn){
+        introTimers.push(setTimeout(()=>btn.classList.add('ready'),680));
+      }
+    },INTRO_STEPS[i]));
+  });
+}
+
+
+// ══════════════════════════════════════════
+//  S1：主畫面
+// ══════════════════════════════════════════
+const POEMS=[
+  '床前明月光，\n疑是地上霜。',
+  '飛流直下三千尺，\n疑是銀河落九天。',
+  '桃花潭水深千尺，\n不及汪倫送我情。',
+  '天生我材必有用，\n千金散盡還復來。',
+  '長風破浪會有時，\n直掛雲帆濟滄海。',
+  '舉杯邀明月，\n對影成三人。',
+  '兩岸猿聲啼不住，\n輕舟已過萬重山。',
+  '朝辭白帝彩雲間，\n千里江陵一日還。',
+  '孤帆遠影碧空盡，\n唯見長江天際流。',
+  '抽刀斷水水更流，\n舉杯消愁愁更愁。',
+];
+let poemIdx=0,poemTimer=null;
+function startPoetryLoop(){
+  const b=document.getElementById('poetry-bubble');
+  function next(){
+    b.style.animation='none';b.offsetHeight;
+    b.style.animation='bFade .55s ease';
+    b.textContent=POEMS[poemIdx%POEMS.length];poemIdx++;
+  }
+  next();if(poemTimer)clearInterval(poemTimer);poemTimer=setInterval(next,3200);
+}
+
+// 地圖 Logo 點擊
+document.querySelectorAll('.map-logo').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const branch = btn.dataset.branch;
+    showScene('scene-branch-' + branch);
+    initBranch(branch);
+  });
+});
+
+// 回到現代
+document.getElementById('btn-return-modern').addEventListener('click', () => {
+  document.getElementById('overlay-return').classList.remove('hidden');
+});
+document.getElementById('btn-stay').addEventListener('click', () => {
+  document.getElementById('overlay-return').classList.add('hidden');
+});
+document.getElementById('btn-confirm-leave').addEventListener('click', () => {
+  document.getElementById('overlay-return').classList.add('hidden');
+  showScene('scene-return');
+  renderReturnPage();
+});
+
+// ══════════════════════════════════════════
+//  S2：分支主流程
+// ══════════════════════════════════════════
+const branchState = {};
+
+function initBranch(branch) {
+  const data = BRANCH_DATA[branch];
+  branchState[branch] = { currentQ: 0 };
+  preloadQuestionAssets(branch, 0);
+  preloadQuestionAssets(branch, 1);
+  // 清除上次殘留的科普視窗
+  document.getElementById(`popup-${branch}`).classList.remove('visible');
+  const _ov = document.getElementById(`popup-overlay-${branch}`);
+  if (_ov) _ov.classList.remove('visible');
+
+  // 每次都重建互動區 HTML，確保元素存在且無舊監聽器
+  const interact = document.getElementById(`interact-${branch}`);
+  interact.innerHTML = `
+    <div class="interact-title">— 你的回應 —</div>
+    <div class="question-box"><p id="q-text-${branch}">問題載入中…</p></div>
+    <button class="option-btn" id="opt-a-${branch}"></button>
+    <button class="option-btn" id="opt-b-${branch}"></button>
+    <div class="input-area">
+      <textarea id="user-input-${branch}" placeholder="或在此輸入你的想法…" rows="3"></textarea>
+      <button class="btn-send" id="btn-send-${branch}">傳送</button>
+    </div>
+    <div class="npc-reply" id="npc-reply-${branch}" style="opacity:0">
+      <span class="npc-name">${data.npcName}：</span>
+      <span id="npc-reply-text-${branch}"></span>
+    </div>
+    <button class="btn-back-main" onclick="showScene('scene-main')">← 回主畫面</button>
+  `;
+
+  // NPC 入場動畫（所有支線通用）
+  const npcW = document.getElementById(`npc-walker-${branch}`);
+  const interactEl = document.getElementById(`interact-${branch}`);
+  interactEl.style.opacity = '0';
+  interactEl.style.transition = '';
+  if (npcW) {
+    npcW.style.transition = 'none';
+    npcW.style.left = '-20%';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      npcW.style.transition = 'left 1.2s ease';
+      npcW.style.left = '15%';
+    }));
+  }
+  setTimeout(() => {
+    renderBranchQuestion(branch);
+    interactEl.style.transition = 'opacity 0.4s ease';
+    interactEl.style.opacity = '1';
+  }, 1200);
+
+  // 選項 A/B
+  ['a','b'].forEach(opt => {
+    document.getElementById(`opt-${opt}-${branch}`).addEventListener('click', () => {
+      const q = data.questions[branchState[branch].currentQ];
+      if (!q) return;
+      document.getElementById(`opt-${opt}-${branch}`).classList.add('selected');
+      const reply = opt === 'a' ? q.defaultNpcReplyA : q.defaultNpcReplyB;
+      showNpcReply(branch, reply);
+      showSciencePopup(branch, q.scienceTitle, q.scienceText, q.scienceImages, q.scienceImagesCentered);
+      lockOptions(branch);
+      lockCustomInput(branch);
+    });
+  });
+
+  // Gemini 傳送
+  document.getElementById(`btn-send-${branch}`).addEventListener('click', async () => {
+    const textarea = document.getElementById(`user-input-${branch}`);
+    const userText = textarea.value.trim();
+    if (!userText) return;
+    const q = data.questions[branchState[branch].currentQ];
+    if (!q) return;
+    const btn = document.getElementById(`btn-send-${branch}`);
+    lockCustomInput(branch, '本回合已送出');
+    const replyEl = document.getElementById(`npc-reply-text-${branch}`);
+    replyEl.innerHTML = `<span class="gemini-thinking">${data.npcName}正在思考中…</span>`;
+    document.getElementById(`npc-reply-${branch}`).style.opacity = '1';
+    const dialogueResult = await callGemini(userText, q.qText, branch, branchState[branch].currentQ + 1);
+    replyEl.textContent = dialogueResult.text;
+    textarea.value = '';
+    if (dialogueResult.isFallback) return;
+    showSciencePopup(branch, q.scienceTitle, q.scienceText, q.scienceImages, q.scienceImagesCentered);
+    lockOptions(branch);
+  });
+
+  // Skip（clone 移除舊監聽器）
+  const oldSkip = document.getElementById(`btn-skip-${branch}`);
+  const newSkip = oldSkip.cloneNode(true);
+  oldSkip.parentNode.replaceChild(newSkip, oldSkip);
+  newSkip.addEventListener('click', () => {
+    document.getElementById(`popup-${branch}`).classList.remove('visible');
+    const overlay = document.getElementById(`popup-overlay-${branch}`);
+    if (overlay) overlay.classList.remove('visible');
+    const q = branchState[branch].currentQ;
+    moveCharHeads(branch, q);
+    markNodeDone(branch, q);
+
+    // NPC 走一區（所有支線通用）
+    const npcW = document.getElementById(`npc-walker-${branch}`);
+    // 清除右側題目內容，等 NPC 走完再出現下一幕
+    document.getElementById(`q-text-${branch}`).textContent = '';
+    ['a','b'].forEach(o => {
+      const ob = document.getElementById(`opt-${o}-${branch}`);
+      ob.style.opacity = '0'; ob.disabled = true;
+    });
+    document.getElementById(`npc-reply-${branch}`).style.opacity = '0';
+    // 甲→乙→丙→丁，每題 skip 後走一區
+    const npcTargets = ['37.5%', '62.5%', '87.5%'];
+    if (branch === 'theater' && q === 0) {
+      // 支線1 Q1 結束：甕圖淡出
+      const bgOv = document.getElementById('bg-overlay-theater');
+      if (bgOv) bgOv.style.opacity = '0';
+    }
+    if (npcW && npcTargets[q] !== undefined) npcW.style.left = npcTargets[q];
+    branchState[branch].currentQ++;
+    setTimeout(() => renderBranchQuestion(branch), 1000);
+  });
+}
+
+function renderBranchQuestion(branch) {
+  const data = BRANCH_DATA[branch];
+  const q = branchState[branch].currentQ;
+  const MAX_Q = data.questions.length;
+
+  if (q >= MAX_Q) {
+    showFinalOptions(branch);
+    return;
+  }
+
+  const qData = data.questions[q];
+  preloadQuestionAssets(branch, q);
+  preloadQuestionAssets(branch, q + 1);
+  document.getElementById(`q-text-${branch}`).textContent = qData.qText;
+  document.getElementById(`opt-a-${branch}`).textContent = qData.optA;
+  document.getElementById(`opt-b-${branch}`).textContent = qData.optB;
+  document.getElementById(`opt-a-${branch}`).disabled = false;
+  document.getElementById(`opt-b-${branch}`).disabled = false;
+  document.getElementById(`opt-a-${branch}`).style.opacity = '1';
+  document.getElementById(`opt-b-${branch}`).style.opacity = '1';
+  document.getElementById(`opt-a-${branch}`).classList.remove('selected');
+  document.getElementById(`opt-b-${branch}`).classList.remove('selected');
+  document.getElementById(`npc-reply-${branch}`).style.opacity = '0';
+  document.getElementById(`user-input-${branch}`).value = '';
+  unlockCustomInput(branch);
+  document.getElementById(`popup-${branch}`).classList.remove('visible');
+  const ov = document.getElementById(`popup-overlay-${branch}`);
+  if (ov) ov.classList.remove('visible');
+  // 支線1：問題一顯示甕圖，其餘問題復原
+  if (branch === 'theater') {
+    const bgOv = document.getElementById('bg-overlay-theater');
+    if (bgOv) bgOv.style.opacity = (q === 0) ? '1' : '0';
+  }
+  markNodeActive(branch, q);
+}
+
+function showNpcReply(branch, text) {
+  const replyEl = document.getElementById(`npc-reply-text-${branch}`);
+  replyEl.textContent = text;
+  document.getElementById(`npc-reply-${branch}`).style.opacity = '1';
+}
+
+function showSciencePopup(branch, title, text, images, centered) {
+  preloadImages(images);
+  document.getElementById(`popup-title-${branch}`).textContent = title;
+  const contentEl = document.getElementById(`popup-text-${branch}`);
+  contentEl.textContent = text;
+  if (images && images.length > 0) {
+    const wrap = document.createElement('div');
+    wrap.className = 'popup-science-imgs' + (centered ? ' centered' : '');
+    images.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      wrap.appendChild(img);
+    });
+    contentEl.appendChild(wrap);
+  }
+  document.getElementById(`popup-${branch}`).classList.add('visible');
+  const overlay = document.getElementById(`popup-overlay-${branch}`);
+  if (overlay) overlay.classList.add('visible');
+}
+
+function lockOptions(branch) {
+  ['a','b'].forEach(opt => {
+    const btn = document.getElementById(`opt-${opt}-${branch}`);
+    btn.disabled = true;
+    if (!btn.classList.contains('selected')) btn.style.opacity = '0.5';
+  });
+}
+
+function lockCustomInput(branch, placeholder = '本回合已完成') {
+  const textarea = document.getElementById(`user-input-${branch}`);
+  const btn = document.getElementById(`btn-send-${branch}`);
+  if (textarea) {
+    textarea.value = '';
+    textarea.disabled = true;
+    textarea.placeholder = placeholder;
+  }
+  if (btn) btn.disabled = true;
+}
+
+function unlockCustomInput(branch) {
+  const textarea = document.getElementById(`user-input-${branch}`);
+  const btn = document.getElementById(`btn-send-${branch}`);
+  if (textarea) {
+    textarea.disabled = false;
+    textarea.placeholder = '或在此輸入你的想法…';
+  }
+  if (btn) btn.disabled = false;
+}
+function markNodeActive(branch, qIdx) {
+  document.querySelectorAll(`#route-nodes-${branch} .route-node`).forEach((node, i) => {
+    node.classList.remove('active');
+    if (i === qIdx) node.classList.add('active');
+  });
+}
+
+function markNodeDone(branch, qIdx) {
+  const node = document.querySelector(`#rn-${branch}-${qIdx}`);
+  if (node) {
+    node.classList.remove('active');
+    node.classList.add('completed-node');
+  }
+}
+
+function moveCharHeads(branch, qIdx) {
+  const pos = BRANCH_DATA[branch].questions[qIdx].nodePositionPercent;
+  const libai = document.getElementById(`head-libai-${branch}`);
+  const npc = document.getElementById(`head-npc-${branch}`);
+  if (libai) {
+    libai.style.top = pos.top;
+    libai.style.left = pos.left;
+  }
+  if (npc) {
+    const topPct = parseInt(pos.top) + 5;
+    const leftPct = parseInt(pos.left) + 6;
+    npc.style.top = topPct + '%';
+    npc.style.left = leftPct + '%';
+  }
+}
+
+function showFinalOptions(branch) {
+  const interact = document.getElementById(`interact-${branch}`);
+  interact.innerHTML = `
+    <div class="interact-title">— 選擇你的展演體驗 —</div>
+    <div class="question-box"><p>三道難關已過！現在，選擇你最想深入體驗的大唐文化精髓：</p></div>
+  `;
+  const data = BRANCH_DATA[branch];
+  preloadImages(data.finalOptions.map(opt => opt.image));
+  data.finalOptions.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn final-option';
+    btn.textContent = opt.text;
+    btn.addEventListener('click', () => {
+      markBranchComplete(branch, opt.text, opt.image, opt.emoji);
+      // NPC 退場往右走出畫面，再淡化切換到展演頁（所有支線通用）
+      const npcW = document.getElementById(`npc-walker-${branch}`);
+      if (npcW) npcW.style.left = '130%';
+      const fadeEl = document.getElementById('transition-overlay');
+      setTimeout(() => {
+        if (fadeEl) fadeEl.style.opacity = '1';
+        setTimeout(() => {
+          showScene(`scene-performance-${branch}`);
+          renderPerformance(branch, i);
+          if (fadeEl) fadeEl.style.opacity = '0';
+        }, 500);
+      }, 600);
+    });
+    interact.appendChild(btn);
+  });
+
+  // 標記最後節點
+  markNodeActive(branch, 3);
+}
+
+// ══════════════════════════════════════════
+//  支線完成
+// ══════════════════════════════════════════
+function markBranchComplete(branch, choice, image, emoji) {
+  GameState.branches[branch].completed = true;
+  GameState.branches[branch].finalChoice = choice;
+  GameState.branches[branch].finalImage = image;
+  GameState.branches[branch].finalEmoji = emoji || '✦';
+
+  const logoEl = document.getElementById('logo-' + branch);
+  if (logoEl) logoEl.classList.add('completed');
+  const dotEl = document.getElementById('dot-' + branch);
+  if (dotEl) dotEl.classList.add('done');
+
+  if (GameState.allCompleted()) {
+    document.getElementById('scene-main').classList.add('all-completed');
+    
+  }
+}
+
+// ══════════════════════════════════════════
+//  S3：展演頁面
+// ══════════════════════════════════════════
+const PERF_EMOJIS = {
+  '🪷': '🪷', '🌀': '🌀', '⚔️': '⚔️',
+  '💎': '💎', '🍵': '🍵', '🌸': '🌸',
+  '🐪': '🐪', '🌲': '🌲', '💰': '💰',
+};
+
+function renderPerformance(branch, optIdx) {
+  const opt = BRANCH_DATA[branch].finalOptions[optIdx];
+
+  const titleEl = document.getElementById(`perf-title-${branch}`);
+  if (titleEl) {
+    const labels = { theater: '大唐盛世·音樂饗宴', food: '大唐盛世·食衣珍藏', tbd: '大唐盛世·城建奇觀' };
+    titleEl.textContent = labels[branch];
+  }
+
+  const imgEl = document.getElementById(`perf-img-${branch}`);
+  if (imgEl && opt.image) {
+    imgEl.src = opt.image;
+    imgEl.style.objectFit = opt.objectFit || 'cover';
+    imgEl.style.objectPosition = opt.objectFit === 'contain' ? 'center center' : 'center top';
+  }
+
+  document.getElementById(`perf-popup-text-${branch}`).textContent = opt.scienceSnippet;
+
+  // 結束按鈕
+  const endBtn = document.getElementById(`btn-end-${branch}`);
+  // 移除舊事件（複製節點方式）
+  const newBtn = endBtn.cloneNode(true);
+  endBtn.parentNode.replaceChild(newBtn, endBtn);
+  newBtn.addEventListener('click', () => {
+    if (GameState.allCompleted()) {
+      showScene('scene-main');
+      startPoetryLoop();
+      setTimeout(() => triggerTvShutoff(), 1000);
+    } else {
+      showScene('scene-main');
+      startPoetryLoop();
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+//  S4：返回現代
+// ══════════════════════════════════════════
+function renderReturnPage() {
+  const stampMap = {theater:'stamp-theater', food:'stamp-food', tbd:'stamp-tbd'};
+  ['theater','food','tbd'].forEach(branch => {
+    const b = GameState.branches[branch];
+    const stamp = document.getElementById(stampMap[branch]);
+    if (stamp) {
+      if (b.completed) stamp.classList.add('visible');
+      else stamp.classList.remove('visible');
+    }
+  });
+
+  const restartBtn = document.getElementById('btn-restart');
+  const newBtn = restartBtn.cloneNode(true);
+  restartBtn.parentNode.replaceChild(newBtn, restartBtn);
+  newBtn.addEventListener('click', () => {
+    // 重置狀態
+    ['theater','food','tbd'].forEach(b => {
+      GameState.branches[b] = { completed: false, finalChoice: null, finalImage: null, finalEmoji: '' };
+    });
+    document.querySelectorAll('.map-logo').forEach(l => l.classList.remove('completed'));
+    document.querySelectorAll('.progress-dot').forEach(d => d.classList.remove('done'));
+    document.getElementById('scene-main').classList.remove('all-completed');
+    
+    document.querySelectorAll('.stamp-img').forEach(s => s.classList.remove('visible'));
+    // 重置節點
+    ['theater','food','tbd'].forEach(branch => {
+      document.querySelectorAll(`#route-nodes-${branch} .route-node`).forEach(n => {
+        n.classList.remove('active','completed-node');
+      });
+      const libai = document.getElementById(`head-libai-${branch}`);
+      const npc = document.getElementById(`head-npc-${branch}`);
+      if (libai) { libai.style.top = '78%'; libai.style.left = '28%'; }
+      if (npc) { npc.style.top = '82%'; npc.style.left = '36%'; }
+      branchState[branch] = null;
+    });
+    showScene('scene-intro');
+    initIntro();
+  });
+}
+
+// ══════════════════════════════════════════
+//  電視關機 → 尾聲
+// ══════════════════════════════════════════
+function triggerTvShutoff() {
+  const shutoff = document.getElementById('tv-shutoff');
+  shutoff.classList.add('closing');
+  setTimeout(() => showEpilogue(), 2200);
+}
+
+function showEpilogue() {
+  const epi = document.getElementById('scene-epilogue');
+  epi.classList.add('visible');
+
+  // 清除舊花瓣，重新生成
+  epi.querySelectorAll('.petal').forEach(p => p.remove());
+  const petalColors = [
+    'rgba(255,182,200,.72)', 'rgba(255,160,180,.62)',
+    'rgba(255,210,220,.65)', 'rgba(240,160,190,.6)'
+  ];
+  for (let pi = 0; pi < 10; pi++) {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    const sz = 8 + Math.random() * 9;
+    p.style.width  = sz + 'px';
+    p.style.height = (sz * 1.4) + 'px';
+    p.style.left   = (Math.random() * 92 + 2) + '%';
+    p.style.background = petalColors[Math.floor(Math.random() * petalColors.length)];
+    p.style.animationDelay    = (Math.random() * 6) + 's';
+    p.style.animationDuration = (6 + Math.random() * 5) + 's';
+    epi.appendChild(p);
+  }
+
+  // Clone button to clear old listeners
+  const oldBtn = document.getElementById('btn-end-journey');
+  const journeyBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(journeyBtn, oldBtn);
+  journeyBtn.classList.remove('is-in', 'ready');
+
+  // Animate text groups
+  const groups = epi.querySelectorAll('.epi-group');
+  groups.forEach(el => el.classList.remove('is-in'));
+  const delays = [100, 900, 1800, 2700];
+  groups.forEach((el, i) => setTimeout(() => el.classList.add('is-in'), delays[i]));
+
+  // Button flies in last, then gains glow
+  setTimeout(() => {
+    journeyBtn.classList.add('is-in');
+    setTimeout(() => journeyBtn.classList.add('ready'), 680);
+  }, 3600);
+
+  journeyBtn.addEventListener('click', () => {
+    epi.querySelectorAll('.petal').forEach(p => p.remove());
+    epi.classList.remove('visible');
+    document.getElementById('tv-shutoff').classList.remove('closing');
+    showScene('scene-return');
+    renderReturnPage();
+  });
+}
+
+
+// ══════════════════════════════════════════
+//  Gemini API
+// ══════════════════════════════════════════
+async function callGemini(userInput, questionContext, branch, turn) {
+  try {
+    const res = await fetch(DIALOGUE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        branch,
+        turn,
+        user_input: userInput,
+        question_context: questionContext,
+      }),
+    });
+    if (!res.ok) throw new Error(`Dialogue API ${res.status}`);
+
+    const data = await res.json();
+    if (data?.is_fallback) {
+      return { text: DIALOGUE_FALLBACK_REPLY, isFallback: true };
+    }
+
+    const text = (data?.npc_response || '').trim();
+    if (!text) {
+      return { text: DIALOGUE_FALLBACK_REPLY, isFallback: true };
+    }
+
+    return { text, isFallback: false };
+  } catch (e) {
+    return { text: DIALOGUE_FALLBACK_REPLY, isFallback: true };
+  }
+}
+
+// ══════════════════════════════════════════
+//  初始化
+// ══════════════════════════════════════════
+function boot(){
+  scaleCanvas();
+  showScene('scene-intro');
+  initIntro();
+  // embedded branch backgrounds & popup parchment
+  document.documentElement.style.setProperty('--branch1-url', `url(${BRANCH1_BG})`);
+  document.documentElement.style.setProperty('--branch2-url', `url(${BRANCH2_BG})`);
+  document.documentElement.style.setProperty('--popup-paper-url', `url(${POPUP_PAPER})`);
+
+  document.getElementById('btn-start').addEventListener('click',()=>{
+    showScene('scene-main');
+    startPoetryLoop();
+  });
+}
+document.addEventListener('DOMContentLoaded',boot);
+window.addEventListener('load',()=>{
+  scaleCanvas();
+  requestAnimationFrame(scaleCanvas);
+  if(typeof ResizeObserver!=='undefined'){
+    const vp=document.getElementById('viewport');
+    if(vp)new ResizeObserver(scaleCanvas).observe(vp);
+  }
+  /* override map and character images with new files */
+  const mapEl=document.getElementById('map-bg');
+  if(mapEl)mapEl.src='/static/assets/image-b4b25ffab333109d.png';
+  const libaiEl=document.getElementById('char-libai');
+  if(libaiEl)libaiEl.src='/static/assets/image-3a78256ecac3d6ca.png';
+});
+</script>
+</body>
+</html>

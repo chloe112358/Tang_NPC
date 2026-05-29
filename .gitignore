@@ -1,0 +1,53 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache/test artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Frontend/build artifacts
+node_modules/
+dist/
+build/
+.vite/
+.next/
+out/
+.vercel/
+.netlify/
+
+# Local runtime/output
+conversation_state.json
+*.log
+*.tmp
+*.bak
+*.old
+final.html.extracted
+
+# Local drafts/manual experiments not needed for deployment
+
+food_1.py
+test_kw_provider.py
+test_response_generator_manual.py
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Project/dev-only notes generated during implementation
+.kiro/
+TASK_*_COMPLETION.md
