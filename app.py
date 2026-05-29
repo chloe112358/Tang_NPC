@@ -45,7 +45,18 @@ class DialogueHandler(BaseHTTPRequestHandler):
             self._send_static_file(path)
             return
 
-        self._send_json(404, {"error": "not_found"})
+        if path == "/api/dialogue":
+            self._send_json(200, {
+                "status": "ok",
+                "message": "Use POST /api/dialogue from the game page.",
+            })
+            return
+
+        if path.startswith("/api/"):
+            self._send_json(404, {"error": "not_found"})
+            return
+
+        self._send_file(FINAL_HTML, "text/html; charset=utf-8")
 
     def do_POST(self):
         path = unquote(self.path.split("?", 1)[0])
