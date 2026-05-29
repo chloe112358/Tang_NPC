@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: tang-dialogue-game
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: PORT
+        value: 10000
+      - key: MODEL_NAME
+        value: gemini-3.1-flash-lite
+      - key: GEMINI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: MAX_INPUT_LENGTH
+        value: 500
+      - key: GEMINI_API_KEY_THEATER
+        sync: false
+      - key: GEMINI_API_KEY_FOOD
+        sync: false
+      - key: GEMINI_API_KEY_TBD
+        sync: false
