@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">三層技術架構圖</title>
+  <desc id="desc">前端 final.html 透過 API 請求連到後端 Python app.py，後端再用金鑰驗證呼叫 Gemini API。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="18" markerHeight="18" refX="14" refY="9" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L16,9 L2,16 Z" fill="#2563eb"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f8fafc"/>
+  <text x="960" y="130" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="54" font-weight="700" fill="#0f172a">三層技術架構</text>
+  <text x="960" y="188" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="28" fill="#64748b">使用者輸入由前端送到後端，後端持有金鑰並呼叫 Gemini</text>
+
+  <g filter="url(#shadow)">
+    <rect x="135" y="345" width="430" height="250" rx="28" fill="#ffffff" stroke="#dbeafe" stroke-width="4"/>
+    <rect x="745" y="345" width="430" height="250" rx="28" fill="#ffffff" stroke="#dcfce7" stroke-width="4"/>
+    <rect x="1355" y="345" width="430" height="250" rx="28" fill="#ffffff" stroke="#ede9fe" stroke-width="4"/>
+  </g>
+
+  <circle cx="350" cy="405" r="35" fill="#dbeafe"/>
+  <text x="350" y="417" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#2563eb">1</text>
+  <text x="350" y="475" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="40" font-weight="700" fill="#0f172a">前端</text>
+  <text x="350" y="530" text-anchor="middle" font-family="Consolas, Arial, sans-serif" font-size="34" fill="#2563eb">final.html</text>
+  <text x="350" y="570" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="23" fill="#64748b">顯示畫面、收集輸入</text>
+
+  <circle cx="960" cy="405" r="35" fill="#dcfce7"/>
+  <text x="960" y="417" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#16a34a">2</text>
+  <text x="960" y="475" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="40" font-weight="700" fill="#0f172a">後端</text>
+  <text x="960" y="530" text-anchor="middle" font-family="Consolas, Arial, sans-serif" font-size="34" fill="#16a34a">Python app.py</text>
+  <text x="960" y="570" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="23" fill="#64748b">驗證資料、保管 API 金鑰</text>
+
+  <circle cx="1570" cy="405" r="35" fill="#ede9fe"/>
+  <text x="1570" y="417" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#7c3aed">3</text>
+  <text x="1570" y="475" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="40" font-weight="700" fill="#0f172a">AI 服務</text>
+  <text x="1570" y="530" text-anchor="middle" font-family="Consolas, Arial, sans-serif" font-size="34" fill="#7c3aed">Gemini API</text>
+  <text x="1570" y="570" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="23" fill="#64748b">產生 NPC 回覆</text>
+
+  <line x1="585" y1="470" x2="715" y2="470" stroke="#2563eb" stroke-width="9" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <rect x="586" y="415" width="128" height="42" rx="21" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2"/>
+  <text x="650" y="445" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="24" font-weight="700" fill="#1d4ed8">API 請求</text>
+
+  <line x1="1195" y1="470" x2="1325" y2="470" stroke="#2563eb" stroke-width="9" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <rect x="1195" y="415" width="130" height="42" rx="21" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2"/>
+  <text x="1260" y="445" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="24" font-weight="700" fill="#1d4ed8">金鑰驗證</text>
+
+  <rect x="420" y="705" width="1080" height="92" rx="24" fill="#fff7ed" stroke="#fed7aa" stroke-width="3"/>
+  <text x="960" y="760" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="31" font-weight="700" fill="#9a3412">安全重點：API 金鑰只存在後端，不放在 final.html</text>
+
+  <text x="960" y="890" text-anchor="middle" font-family="Microsoft JhengHei, Noto Sans TC, Arial, sans-serif" font-size="26" fill="#475569">流程：使用者輸入 → 前端送出 → 後端呼叫 Gemini → 回傳 NPC 回覆</text>
+</svg>

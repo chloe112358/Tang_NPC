@@ -1,78 +1,128 @@
-# Tang Dynasty Dialogue System
+# 史料未及：請勿對古人劇透！
 
-A Tang Dynasty educational dialogue game with three NPC branches: 雷班主, 安掌櫃, and 裴掌櫃. `final.html` is served by a small Python backend so free-text dialogue can safely call Gemini with server-side system prompts.
+一款以唐朝長安城為背景的教育互動對話遊戲。玩家扮演穿越到唐朝的現代人，透過與三位唐代 NPC 的自由對話，在趣味互動中學習古代科學與人文知識。
 
-## Project Structure
+遊戲網址：https://tang-dialogue-game.onrender.com
+
+## 遊戲內容
+
+玩家可在長安城地圖上選擇三條探索路線，每條路線包含 3 回合對話：
+
+| 路線 | NPC | 地點 | 對話主題 |
+|------|-----|------|----------|
+| 🎭 育樂 | 雷班主（舞台總監） | 大明宮教坊 | 陶甕擴音 → 軟裝吸音 → 拍板指揮 |
+| 🍜 食衣 | 安掌櫃（酒樓布莊老闆） | 西市 | 食物保鮮 → 服飾材質 → 品色服制度 |
+| 🏯 住行 | 裴掌櫃（商行總管） | 東市 | 車輿減震 → 倉儲防火 → 榫卯預製 |
+
+每回合結束後會彈出科普視窗，將古代工藝與現代科學原理對照解說。三條路線全部完成後，進入尾聲收束畫面。
+
+## 技術架構
+
+```
+前端 (final.html)                     後端 (app.py)
+┌─────────────────────┐    POST      ┌─────────────────────────┐
+│  HTML / CSS / JS     │──────────→  │  Python HTTP Server      │
+│  遊戲畫面 & 互動邏輯  │  /api/     │                          │
+│  預設選項 A/B 回覆    │  dialogue  │  tang_dialogue_test.py   │
+│  (不需呼叫後端)       │ ←──────────│  ├ 9 組 System Prompt     │
+└─────────────────────┘   JSON      │  ├ 服色禁忌偵測 & 校正     │
+                                    │  ├ 收束知識點驗證          │
+                                    │  └ Gemini API 呼叫        │
+                                    └─────────────────────────┘
+```
+
+- **前端**：`final.html` 為單一 HTML 檔案，包含所有 CSS、HTML 場景和 JavaScript 邏輯。玩家選擇預設選項 A/B 時，直接使用前端內建的回覆，不需呼叫後端。
+- **後端**：`app.py` 啟動一個 Python HTTP Server，負責提供 `final.html` 與靜態圖片，並處理 `POST /api/dialogue` 請求。
+- **對話引擎**：`tang_dialogue_test.py` 包含 9 組 NPC System Prompt、服色禁忌校正邏輯、收束知識點驗證，以及 Google Gemini API 的呼叫封裝。當玩家使用自由輸入時，後端呼叫 Gemini 生成 NPC 回覆。
+
+## 專案結構
 
 ```
 .
-├── src/                    # Core application code
-│   ├── __init__.py
-│   └── models.py          # Core data models
-├── config/                # Configuration files
-│   └── __init__.py
-├── frontend/              # Frontend interface code
-│   └── __init__.py
-├── tests/                 # Test suite
-│   ├── __init__.py
-│   └── test_models.py    # Data model tests
-├── .env.example          # Environment variable template
-├── requirements.txt      # Python dependencies
-└── README.md            # This file
+├── app.py                     # Web 伺服器（HTTP handler，提供前端頁面與 API）
+├── tang_dialogue_test.py      # 對話引擎（System Prompt、Gemini API、服色校正）
+├── final.html                 # 前端遊戲（HTML/CSS/JS 單一檔案）
+├── static/assets/             # 遊戲圖片素材（場景、NPC、科普插圖等 40 張）
+├── requirements.txt           # Python 相依套件
+├── .env.example               # 環境變數範本
+├── render.yaml                # Render 部署設定
+└── README.md                  # 本文件
 ```
 
-## Setup
+## 環境設定與啟動
 
-### 1. Create Virtual Environment
+### 1. 建立虛擬環境並安裝套件
 
 ```bash
 python -m venv .venv
-```
-
-### 2. Activate Virtual Environment
-
-**Windows:**
-```bash
-.venv\Scripts\activate
-```
-
-**Linux/Mac:**
-```bash
-source .venv/bin/activate
-```
-
-### 3. Install Dependencies
-
-```bash
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # Linux/Mac
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment
+### 2. 設定環境變數
 
-Copy `.env.example` to `.env` and fill in your API key:
+複製 `.env.example` 為 `.env`，填入 Google Gemini API Key：
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and set one Google Gemini API key per NPC branch:
+```env
+# 每個 NPC 分支使用獨立的 API Key（必填至少一組）
+GEMINI_API_KEY_THEATER=你的_API_Key
+GEMINI_API_KEY_FOOD=你的_API_Key
+GEMINI_API_KEY_TBD=你的_API_Key
 
-```
-GEMINI_API_KEY_THEATER=your_theater_npc_api_key_here
-GEMINI_API_KEY_FOOD=your_food_npc_api_key_here
-GEMINI_API_KEY_TBD=your_tbd_npc_api_key_here
+# 或設定一個共用的 fallback key
+# GEMINI_API_KEY=你的_fallback_API_Key
 ```
 
-### 5. Run the Web Game
+### 3. 啟動伺服器
 
 ```bash
 python app.py
 ```
 
-Open `http://localhost:8000`.
+開啟瀏覽器前往 `http://localhost:8000` 即可遊玩。
 
-The frontend calls `POST /api/dialogue`; do not put a Gemini API key in `final.html`. If Gemini quota is exhausted, the model is unavailable, the key is missing, or the network fails, the API returns:
+## 部署
 
+本專案已部署至 Render，設定檔為 `render.yaml`。
+
+部署至其他平台（Railway、Fly.io、Cloud Run 等）的基本設定：
+
+| 項目 | 值 |
+|------|---|
+| Build command | `pip install -r requirements.txt` |
+| Start command | `python app.py` |
+| 必要環境變數 | `GEMINI_API_KEY_THEATER`、`GEMINI_API_KEY_FOOD`、`GEMINI_API_KEY_TBD` |
+| 選用環境變數 | `GEMINI_MODEL`（預設 `gemini-3.1-flash-lite`）、`PORT`（預設 `8000`） |
+
+## API 說明
+
+### `POST /api/dialogue`
+
+前端自由輸入時呼叫此 API，由後端透過 Gemini 生成 NPC 回覆。
+
+**Request Body：**
+```json
+{
+  "branch": "theater",
+  "turn": 1,
+  "user_input": "舞台地板下面到底藏了什麼？"
+}
+```
+
+**Response（成功）：**
+```json
+{
+  "npc_response": "哈哈，非也非也！這木板底下大有乾坤...",
+  "is_fallback": false
+}
+```
+
+**Response（Gemini 不可用時的 fallback）：**
 ```json
 {
   "npc_response": "回覆額度用盡，請選既有選項",
@@ -80,90 +130,11 @@ The frontend calls `POST /api/dialogue`; do not put a Gemini API key in `final.h
 }
 ```
 
-In that fallback state, the game keeps the existing A/B choices available and does not open the science popup.
+當 API 回傳 `is_fallback: true` 時，前端會保留預設選項 A/B 供玩家繼續遊戲。
 
-## Deployment
+## 對話設計機制
 
-For one public playable URL, deploy this repo as a Python web service on Render, Railway, Fly.io, Cloud Run, or a similar host.
-
-- Build command: `pip install -r requirements.txt`
-- Start command: `python app.py`
-- Required environment variables: `GEMINI_API_KEY_THEATER`, `GEMINI_API_KEY_FOOD`, `GEMINI_API_KEY_TBD`
-- Optional fallback environment variable: `GEMINI_API_KEY`
-- Optional environment variables: `GEMINI_MODEL` or `MODEL_NAME` (default: `gemini-3.1-flash-lite`), `PORT`
-
-GitHub Pages alone can host only the static `final.html`; it cannot safely run the Python backend or protect the API key.
-
-## Core Data Models
-
-### TurnNumber (Enum)
-- `TURN_1`: Food cooking and preservation
-- `TURN_2`: Clothing materials and fastening
-- `TURN_3`: Clothing colors and social hierarchy
-
-### ConversationState
-Tracks the current dialogue state:
-- `current_turn`: Current turn number (1-3)
-- `is_complete`: Whether all three turns are finished
-- `conversation_history`: List of (player_input, npc_response) tuples
-- `timestamp`: ISO format timestamp of last update
-
-### DialogueResponse
-Response returned to frontend:
-- `npc_response`: An Shopkeeper's dialogue text
-- `turn`: Current turn number
-- `knowledge_window`: Educational content
-- `is_complete`: Conversation completion status
-
-### KnowledgeWindow
-Educational content displayed after convergence:
-- `title`: Window title
-- `body`: Educational content in markdown
-- `image_description`: Suggested image for visual display
-
-### SystemConfig
-System configuration loaded from environment:
-- `api_key`: Google Gemini API key
-- `model_name`: LLM model name (default: gemini-3.1-flash-lite)
-- `max_input_length`: Maximum player input length (default: 500)
-- `storage_backend`: Storage type (file/memory/database)
-- `temperature`: LLM sampling temperature (default: 0.7)
-- `max_tokens`: Maximum response length (default: 500)
-
-## Serialization
-
-All data models support serialization:
-- `to_dict()`: Convert to dictionary
-- `from_dict(data)`: Create from dictionary
-- `to_json()`: Convert to JSON string
-
-## Running Tests
-
-```bash
-pytest tests/ -v
-```
-
-## Requirements Validated
-
-This implementation validates the following requirements:
-- **5.1**: Structured response data containing NPC dialogue text
-- **5.2**: Structured response data containing current turn number
-- **5.3**: Structured response data containing Knowledge_Window content
-- **5.4**: Structured response data containing conversation completion status
-- **5.5**: Structured response data in JSON format
-- **5.6**: Knowledge_Window content includes title, body text, and image descriptions
-- **12.1**: NPC-specific API keys read from environment variables or .env file
-- **12.2**: LLM model name configurable via environment variable
-- **12.3**: Maximum input length configurable via environment variable
-- **12.4**: State persistence method configurable via environment variable
-- **12.5**: Clear error message when required environment variables are missing
-
-## Next Steps
-
-1. Implement StateManager for state persistence
-2. Implement ResponseGenerator for LLM integration
-3. Implement PromptManager for prompt engineering
-4. Implement KnowledgeWindowProvider for educational content
-5. Implement DialogueSystem core orchestrator
-6. Implement TerminalInterface for testing
-7. Create HTML/JavaScript frontend
+- **收束目標**：每回合的 System Prompt 都設定了強制收束的知識點（如「陶甕擴音」「拍板指揮」），無論玩家問什麼，NPC 都必須帶到該知識點。
+- **服色禁忌校正**：若玩家提到想穿黃色、紫色、緋色等唐代禁色衣物，系統會在 user message 中注入校正指令，確保 NPC 先勸阻再轉回主題。
+- **收束驗證**：後端會檢查 Gemini 回覆是否包含核心關鍵詞，若缺漏則自動替換為預設的收束回覆。
+- **輸出清理**：自動移除 Gemini 回覆中的 Markdown 格式符號（`**`、`*` 等），並處理重複的轉場用語。
